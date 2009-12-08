@@ -101,9 +101,7 @@ namespace RT.SqlChain
         }
     }
 
-    /// <summary>
-    /// Describes an SqlChain connection to an SQLite database.
-    /// </summary>
+    /// <summary>Describes an SqlChain connection to an SQLite database.</summary>
     public class SqliteConnectionInfo : ConnectionInfo
     {
         protected override string ProviderNamespace
@@ -132,6 +130,21 @@ namespace RT.SqlChain
             else
                 fileName = "\"" + fileName + "\"";
             ConnectionString = string.Format(@"Data Source={0};Version=3;FailIfMissing={1}", fileName, failIfMissing);
+        }
+    }
+    
+    /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
+    public class SqlServerConnectionInfo : ConnectionInfo
+    {
+        protected override string ProviderNamespace
+        {
+            get { return "IQToolkit.Data.SqlClient"; }
+        }
+
+        /// <summary>Describes a connection to a Microsoft SQL Server database described by <paramref name="connectionString"/>.</summary>
+        public SqlServerConnectionInfo(string connectionString)
+        {
+            ConnectionString = connectionString;
         }
     }
 }
