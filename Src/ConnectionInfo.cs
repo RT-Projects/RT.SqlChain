@@ -5,16 +5,20 @@ using System.Reflection;
 using IQToolkit.Data;
 using IQToolkit.Data.Common;
 using IQToolkit.Data.Mapping;
+using RT.Util.Xml;
 
 namespace RT.SqlChain
 {
     /// <summary>
     /// Describes an SqlChain database connection.
     /// </summary>
+    [Serializable]
     public abstract class ConnectionInfo
     {
         public string ConnectionString { get; protected set; }
         protected abstract string ProviderNamespace { get; }
+
+        [XmlIgnore]
         private Type _providerType, _adoConnectionType, _queryLanguageType;
 
         /// <summary>
@@ -102,6 +106,7 @@ namespace RT.SqlChain
     }
 
     /// <summary>Describes an SqlChain connection to an SQLite database.</summary>
+    [Serializable]
     public class SqliteConnectionInfo : ConnectionInfo
     {
         protected override string ProviderNamespace
@@ -134,6 +139,7 @@ namespace RT.SqlChain
     }
     
     /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
+    [Serializable]
     public class SqlServerConnectionInfo : ConnectionInfo
     {
         protected override string ProviderNamespace
