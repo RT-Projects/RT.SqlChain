@@ -5,6 +5,7 @@ using System.Reflection;
 using IQToolkit.Data;
 using IQToolkit.Data.Common;
 using IQToolkit.Data.Mapping;
+using RT.SqlChain.Schema;
 using RT.Util.Xml;
 
 namespace RT.SqlChain
@@ -12,7 +13,6 @@ namespace RT.SqlChain
     /// <summary>
     /// Describes an SqlChain database connection.
     /// </summary>
-    [Serializable]
     public abstract class ConnectionInfo
     {
         public string ConnectionString { get; protected set; }
@@ -20,6 +20,13 @@ namespace RT.SqlChain
 
         [XmlIgnore]
         private Type _providerType, _adoConnectionType, _queryLanguageType;
+
+        /// <summary>
+        /// Creates a schema mutator appropriate for the database engine being used.
+        /// </summary>
+        /// <param name="conn">An open ADO.NET connection to be used by the mutator for
+        /// retrieving schema information and applying modifications.</param>
+        public abstract SchemaMutator CreateSchemaMutator(DbConnection conn);
 
         /// <summary>
         /// Used by the SqlChain DB connection constructor to instantiate an IQToolkit connection.
@@ -106,7 +113,6 @@ namespace RT.SqlChain
     }
 
     /// <summary>Describes an SqlChain connection to an SQLite database.</summary>
-    [Serializable]
     public class SqliteConnectionInfo : ConnectionInfo
     {
         protected override string ProviderNamespace
@@ -120,6 +126,14 @@ namespace RT.SqlChain
         public SqliteConnectionInfo(string connectionString)
         {
             ConnectionString = connectionString;
+        }
+
+        /// <summary>
+        /// Creates a schema mutator appropriate for the database engine being used.
+        /// </summary>
+        public override SchemaMutator CreateSchemaMutator(DbConnection conn)
+        {
+            return new SqliteSchemaMutator(conn);
         }
 
         /// <summary>
@@ -139,12 +153,19 @@ namespace RT.SqlChain
     }
     
     /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
-    [Serializable]
     public class SqlServerConnectionInfo : ConnectionInfo
     {
         protected override string ProviderNamespace
         {
             get { return "IQToolkit.Data.SqlClient"; }
+        }
+
+        /// <summary>
+        /// Creates a schema mutator appropriate for the database engine being used.
+        /// </summary>
+        public override SchemaMutator CreateSchemaMutator(DbConnection conn)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>Describes a connection to a Microsoft SQL Server database described by <paramref name="connectionString"/>.</summary>

@@ -36,6 +36,10 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data.SQLite, Version=1.0.65.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\IQToolkit\Lib\Sqlite\Portable\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -48,6 +52,11 @@
   <ItemGroup>
     <Compile Include="ConnectionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Schema\Retriever.cs" />
+    <Compile Include="Schema\Schema.cs" />
+    <Compile Include="Schema\SchemaMutator.cs" />
+    <Compile Include="Schema\SqliteRetriever.cs" />
+    <Compile Include="Schema\SqlServerRetriever.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\IQToolkit\Src\Sources\IQToolkit.Data\IQToolkit.Data.csproj">
