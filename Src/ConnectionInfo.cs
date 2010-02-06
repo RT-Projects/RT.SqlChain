@@ -15,84 +15,122 @@ namespace RT.SqlChain
     /// </summary>
     public abstract class ConnectionInfo
     {
-        public string ConnectionString { get; protected set; }
         protected abstract string ProviderNamespace { get; }
-
-        [XmlIgnore]
-        private Type _providerType, _adoConnectionType, _queryLanguageType;
 
         /// <summary>
         /// Creates a schema mutator appropriate for the database engine being used.
         /// </summary>
         /// <param name="conn">An open ADO.NET connection to be used by the mutator for
         /// retrieving schema information and applying modifications.</param>
-        public abstract SchemaMutator CreateSchemaMutator(DbConnection conn);
+        /// <param name="readOnly">If true, the mutator will not make any actual changes, which
+        /// is useful if one is only interested in the resulting SQL.</param>
+        public abstract SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly);
 
         /// <summary>
-        /// Used by the SqlChain DB connection constructor to instantiate an IQToolkit connection.
+        /// Creates a <see cref="DbConnection"/> as described by this class. The returned connection
+        /// needs to be opened before use. This method will likely fail if the database does not exist.
         /// </summary>
-        public virtual DbEntityProvider CreateEntityProvider(Type mappingType)
+        public abstract DbConnection CreateConnection();
+
+        /// <summary>
+        /// Creates a <see cref="DbConnection"/> as described by this class, for the purpose of creating
+        /// a schema from scratch. May perform additional operations to make it possible to open the
+        /// returned connection. This method will not fail just because the database does not exist.
+        /// </summary>
+        public abstract DbConnection CreateConnectionForSchemaCreation();
+
+        /// <summary>
+        /// Instantiates an IQToolkit "entity provider" for a new connection described by this class, using
+        /// the specified mapping type to map tables/rows onto types/instances.
+        /// </summary>
+        public virtual DbEntityProvider CreateEntityProvider(DbConnection connection, Type mappingType)
         {
-            if (_providerType == null)
-                _providerType = TryFindDescendantOfType(typeof(DbEntityProvider), ProviderNamespace);
-            if (_providerType == null)
-                throw new InvalidOperationException(string.Format("Could not find an appropriate \"{0}\" in the namespace \"{1}\"", typeof(DbEntityProvider), ProviderNamespace));
-
-            if (_adoConnectionType == null)
-                _adoConnectionType = GetAdoConnectionType(_providerType);
-            if (_adoConnectionType == null)
-                throw new InvalidOperationException(string.Format("Could not deduce ADO connection type for \"{0}\"", _providerType));
-
-            if (_queryLanguageType == null)
-                _queryLanguageType = TryFindDescendantOfType(typeof(QueryLanguage), _providerType.Namespace);
-            if (_queryLanguageType == null)
-                throw new InvalidOperationException(string.Format("Could not find a \"{0}\" for \"{1}\"", typeof(QueryLanguage), _providerType));
-
-            var connection = (DbConnection) Activator.CreateInstance(_adoConnectionType);
-            connection.ConnectionString = ConnectionString;
-            var language = (QueryLanguage) Activator.CreateInstance(_queryLanguageType);
-            var provider = (DbEntityProvider) Activator.CreateInstance(_providerType,
+            var language = (QueryLanguage) Activator.CreateInstance(QueryLanguageType);
+            var provider = (DbEntityProvider) Activator.CreateInstance(ProviderType,
                 new object[] { connection, new AttributeMapping(language, mappingType), QueryPolicy.Default });
 
             return provider;
         }
 
-        private static Type GetAdoConnectionType(Type providerType)
+        #region ProviderType, QueryLanguageType and AdoConnectionType
+
+        [XmlIgnore]
+        private Type _providerType, _adoConnectionType, _queryLanguageType;
+
+        protected Type ProviderType
         {
-            foreach (var con in providerType.GetConstructors())
-                foreach (var arg in con.GetParameters())
-                    if (arg.ParameterType.IsSubclassOf(typeof(DbConnection)))
-                        return arg.ParameterType;
-            return null;
+            get
+            {
+                if (_providerType == null)
+                {
+                    _providerType = tryFindDescendantOfType(typeof(DbEntityProvider), ProviderNamespace);
+                    if (_providerType == null)
+                        throw new InvalidOperationException(string.Format("Could not find an appropriate \"{0}\" in the namespace \"{1}\"", typeof(DbEntityProvider), ProviderNamespace));
+                }
+                return _providerType;
+            }
         }
 
-        private Type TryFindDescendantOfType(Type type, string @namespace)
+        protected Type QueryLanguageType
+        {
+            get
+            {
+                if (_queryLanguageType == null)
+                {
+                    _queryLanguageType = tryFindDescendantOfType(typeof(QueryLanguage), _providerType.Namespace);
+                    if (_queryLanguageType == null)
+                        throw new InvalidOperationException(string.Format("Could not find a \"{0}\" for \"{1}\"", typeof(QueryLanguage), _providerType));
+                }
+                return _queryLanguageType;
+            }
+        }
+
+        protected Type AdoConnectionType
+        {
+            get
+            {
+                if (_adoConnectionType == null)
+                {
+                    foreach (var con in ProviderType.GetConstructors())
+                        foreach (var arg in con.GetParameters())
+                            if (arg.ParameterType.IsSubclassOf(typeof(DbConnection)))
+                            {
+                                _adoConnectionType = arg.ParameterType;
+                                return _adoConnectionType;
+                            }
+                    throw new InvalidOperationException(string.Format("Could not deduce ADO connection type for \"{0}\"", _providerType));
+                }
+                return _adoConnectionType;
+            }
+        }
+
+        private static Type tryFindDescendantOfType(Type type, string @namespace)
         {
             Type result;
 
             // Look in the executing or entry assembly, for cases where it's been merged
             var assyExecuting = Assembly.GetExecutingAssembly();
-            result = TryFindDescendantOfType(assyExecuting, type, @namespace);
+            result = tryFindDescendantOfType(assyExecuting, type, @namespace);
             if (result != null) return result;
 
             var assyEntry = Assembly.GetEntryAssembly();
             if (assyExecuting != assyEntry)
             {
-                result = TryFindDescendantOfType(assyEntry, type, @namespace);
+                result = tryFindDescendantOfType(assyEntry, type, @namespace);
                 if (result != null) return result;
             }
 
             // Look in all other app domain assemblies, but use assembly name as an optimization
             foreach (var assy in AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains(@namespace)))
             {
-                result = TryFindDescendantOfType(assy, type, @namespace);
+                result = tryFindDescendantOfType(assy, type, @namespace);
                 if (result != null) return result;
             }
 
             // Try to load from an external file of the namespace name.
             try
             {
-                result = TryFindDescendantOfType(Assembly.LoadFrom(@namespace + ".dll"), type, @namespace);
+                result = tryFindDescendantOfType(Assembly.LoadFrom(@namespace + ".dll"), type, @namespace);
                 if (result != null) return result;
             }
             catch { }
@@ -100,7 +138,7 @@ namespace RT.SqlChain
             return null;
         }
 
-        private Type TryFindDescendantOfType(Assembly assembly, Type type, string @namespace)
+        private static Type tryFindDescendantOfType(Assembly assembly, Type type, string @namespace)
         {
             var types = assembly.GetTypes().Where(t => t.IsSubclassOf(type) && t.Namespace == @namespace).ToArray();
             if (types.Length == 1)
@@ -110,68 +148,119 @@ namespace RT.SqlChain
             else
                 throw new InvalidOperationException(string.Format("Multiple descendants of \"{0}\" found in namespace \"{1}\", assembly \"{2}\".", type, @namespace, assembly));
         }
+
+        #endregion
     }
 
     /// <summary>Describes an SqlChain connection to an SQLite database.</summary>
     public class SqliteConnectionInfo : ConnectionInfo
     {
-        protected override string ProviderNamespace
-        {
-            get { return "IQToolkit.Data.SQLite"; }
-        }
+        public string FileName { get; private set; }
+
+        protected override string ProviderNamespace { get { return "IQToolkit.Data.SQLite"; } }
 
         /// <summary>
-        /// Describes a connection to an SQLite database described by <paramref name="connectionString"/>.
+        /// Describes a connection to an SQLite database in file <paramref name="fileName"/>.
         /// </summary>
-        public SqliteConnectionInfo(string connectionString)
+        public SqliteConnectionInfo(string fileName)
         {
-            ConnectionString = connectionString;
+            FileName = fileName;
         }
 
-        /// <summary>
-        /// Creates a schema mutator appropriate for the database engine being used.
-        /// </summary>
-        public override SchemaMutator CreateSchemaMutator(DbConnection conn)
+        public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
-            return new SqliteSchemaMutator(conn);
+            return new SqliteSchemaMutator(conn, readOnly);
         }
 
-        /// <summary>
-        /// Describes a connection to an SQLite database in file <paramref name="fileName"/>, and specifies
-        /// whether the connection should fail if the file is missing.
-        /// </summary>
-        public SqliteConnectionInfo(string fileName, bool failIfMissing)
+        public override DbConnection CreateConnection()
         {
-            if (fileName.Contains("\"") && fileName.Contains("'"))
-                throw new ArgumentException("File name contains both single and double quotes; this is not supported by the query string mechanism.", "fileName");
-            else if (fileName.Contains("\""))
-                fileName = "'" + fileName + "'";
-            else
-                fileName = "\"" + fileName + "\"";
-            ConnectionString = string.Format(@"Data Source={0};Version=3;FailIfMissing={1}", fileName, failIfMissing);
+            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
+            conn.ConnectionString = new DbConnectionStringBuilder()
+                {
+                    {"Data Source", FileName},
+                    {"Version", "3"},
+                    {"FailIfMissing", "True"},
+                }.ConnectionString;
+            return conn;
+        }
+
+        public override DbConnection CreateConnectionForSchemaCreation()
+        {
+            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
+            conn.ConnectionString = new DbConnectionStringBuilder()
+                {
+                    {"Data Source", FileName},
+                    {"Version", "3"},
+                    {"FailIfMissing", "False"},
+                }.ConnectionString;
+            return conn;
         }
     }
-    
+
     /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
     public class SqlServerConnectionInfo : ConnectionInfo
     {
-        protected override string ProviderNamespace
+        public string Server { get; private set; }
+        public string Database { get; private set; }
+
+        protected override string ProviderNamespace { get { return "IQToolkit.Data.SqlClient"; } }
+
+        public SqlServerConnectionInfo(string server, string database)
         {
-            get { return "IQToolkit.Data.SqlClient"; }
+            Server = server;
+            Database = database;
         }
 
-        /// <summary>
-        /// Creates a schema mutator appropriate for the database engine being used.
-        /// </summary>
-        public override SchemaMutator CreateSchemaMutator(DbConnection conn)
+        public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
-            throw new NotImplementedException();
+            return new SqlServerSchemaMutator(conn, readOnly);
         }
 
-        /// <summary>Describes a connection to a Microsoft SQL Server database described by <paramref name="connectionString"/>.</summary>
-        public SqlServerConnectionInfo(string connectionString)
+        public override DbConnection CreateConnection()
         {
-            ConnectionString = connectionString;
+            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
+            conn.ConnectionString = new DbConnectionStringBuilder()
+                {
+                    {"Server", Server},
+                    {"Database", Database},
+                    {"Trusted_Connection", "True"},
+                }.ConnectionString;
+            return conn;
+        }
+
+        public override DbConnection CreateConnectionForSchemaCreation()
+        {
+            // First try to create the database, in case it doesn't exist yet
+            try
+            {
+                using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+                {
+                    master.ConnectionString = new DbConnectionStringBuilder()
+                        {
+                            {"Server", Server},
+                            {"Database", "master"},
+                            {"Trusted_Connection", "True"},
+                        }.ConnectionString;
+                    master.Open();
+                    using (var cmd = master.CreateCommand())
+                    {
+                        cmd.CommandText = "CREATE DATABASE " + Database;
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (DbException)
+            {
+            }
+
+            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
+            conn.ConnectionString = new DbConnectionStringBuilder()
+                {
+                    {"Server", Server},
+                    {"Database", Database},
+                    {"Trusted_Connection", "True"},
+                }.ConnectionString;
+            return conn;
         }
     }
 }

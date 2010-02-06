@@ -1,0 +1,10 @@
+﻿- Keep SqlChain free of references to specific IQToolkit or ADO.NET providers. All providers should
+  be retrieved dynamically when needed, so that a project not using a particular DBMS doesn't need
+  to include DLLs pertaining to it.
+  
+  Strictly speaking it's probably possible to get away with using some specific references that never
+  get executed, but so far there's no need for them. Let's keep it that way "by default", and review this
+  policy if the need arises.
+
+  Base classes, such as DbConnection for example, should be used to comply with the above. Create
+  specific instances dynamically where necessary - e.g. see DbProviderFactories.

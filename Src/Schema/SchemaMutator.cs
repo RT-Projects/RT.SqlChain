@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text;
 using RT.Util.ExtensionMethods;
+using RT.Util;
 
 namespace RT.SqlChain.Schema
 {
@@ -15,15 +16,11 @@ namespace RT.SqlChain.Schema
         /// If null, logging is disabled. Otherwise every SQL query executed is logged to this instance.
         /// </summary>
         public TextWriter Log { get; set; }
-        /// <summary>
-        /// Set to true to prevent the SQL queries from being executed. They will still be logged as long as
-        /// <see cref="Log"/> is not null.
-        /// </summary>
-        public bool LogOnly { get; set; }
 
+        /// <param name="connection">May be null - in which case no actual schema changes will be made</param>
+        /// <param name="retriever">May be null - in which case certain operations only on certain DBMSs only will result in <see cref="NullReferenceException"/>.</param>
         public SchemaMutator(DbConnection connection, IRetriever retriever)
         {
-            LogOnly = false;
             Connection = connection;
             Retriever = retriever;
         }
@@ -32,10 +29,11 @@ namespace RT.SqlChain.Schema
         {
             if (Log != null)
             {
-                Log.WriteLine(sql);
+                Log.Write(sql);
+                Log.WriteLine(";");
                 Log.WriteLine();
             }
-            if (LogOnly)
+            if (Connection == null)
                 return -1;
             using (var cmd = Connection.CreateCommand())
             {
@@ -44,20 +42,7 @@ namespace RT.SqlChain.Schema
             }
         }
 
-        public virtual void CreateSchema(SchemaInfo schema)
-        {
-            foreach (var table in schema.Tables)
-                CreateTable(table);
-        }
-
-        public abstract void CreateTable(TableInfo table);
-    }
-
-    public class SqliteSchemaMutator : SchemaMutator
-    {
-        public SqliteSchemaMutator(DbConnection connection) : base(connection, new SqliteRetriever(connection)) { }
-
-        public string TypeToSqlString(TypeInfo type)
+        protected virtual string TypeToSqlString(TypeInfo type)
         {
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
@@ -66,19 +51,21 @@ namespace RT.SqlChain.Schema
                 case BasicType.FixBinary: return "BINARY({0})".Fmt(type.Length.Value) + nullable;
                 case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
-                case BasicType.Boolean: return "BOOLEAN" + nullable;
-                case BasicType.Autoincrement: return "INTEGER" + nullable;
+                case BasicType.Boolean: return "BIT" + nullable;
                 case BasicType.Byte: return "TINYINT" + nullable;
                 case BasicType.Short: return "SMALLINT" + nullable;
                 case BasicType.Int: return "INT" + nullable;
-                case BasicType.Long: return "INTEGER" + nullable;
                 case BasicType.Double: return "FLOAT" + nullable;
                 default:
-                    throw new Exception("Unknown BasicType");
+                    throw new InternalError("BasicType {0} must be overridden in descendants.".Fmt(type.BasicType));
             }
         }
 
-        public override void CreateTable(TableInfo table)
+        protected abstract string AutoincrementSuffix { get; }
+
+        public abstract void CreateSchema(SchemaInfo schema);
+
+        protected void CreateTable(TableInfo table, bool includeForeignKeys)
         {
             bool first;
             var sql = new StringBuilder();
@@ -98,7 +85,7 @@ namespace RT.SqlChain.Schema
                     sql.Append(" CONSTRAINT [{0}] PRIMARY KEY".Fmt(pk.Name));
                     pk = null;
                     if (column.Type.BasicType == BasicType.Autoincrement)
-                        sql.Append(" AUTOINCREMENT");
+                        sql.Append(" " + AutoincrementSuffix);
                 }
             }
             // Primary key
@@ -118,18 +105,90 @@ namespace RT.SqlChain.Schema
                     unique.ColumnNames.JoinString(", ")));
             }
             // Foreign keys
-            foreach (var foreignKey in table.ForeignKeys)
+            if (includeForeignKeys)
             {
-                sql.AppendLine(",");
-                sql.Append("  CONSTRAINT [{0}] FOREIGN KEY ({1}) REFERENCES [{2}] ({3})".Fmt(
-                    foreignKey.Name,
-                    foreignKey.ColumnNames.JoinString(", "),
-                    foreignKey.ReferencedTableName,
-                    foreignKey.ReferencedColumnNames.JoinString(", ")));
+                foreach (var foreignKey in table.ForeignKeys)
+                {
+                    sql.AppendLine(",");
+                    sql.Append("  CONSTRAINT [{0}] FOREIGN KEY ({1}) REFERENCES [{2}] ({3})".Fmt(
+                        foreignKey.Name,
+                        foreignKey.ColumnNames.JoinString(", "),
+                        foreignKey.ReferencedTableName,
+                        foreignKey.ReferencedColumnNames.JoinString(", ")));
+                }
             }
             sql.Append(")");
 
             ExecuteSql(sql.ToString());
+        }
+    }
+
+    public class SqliteSchemaMutator : SchemaMutator
+    {
+        public SqliteSchemaMutator(DbConnection connection, bool readOnly)
+            : base(readOnly ? null : connection, new SqliteRetriever(connection))
+        {
+        }
+
+        protected override string TypeToSqlString(TypeInfo type)
+        {
+            string nullable = type.Nullable ? "" : " NOT NULL";
+            switch (type.BasicType)
+            {
+                case BasicType.Autoincrement: return "INTEGER" + nullable;
+                case BasicType.Long: return "INTEGER" + nullable;
+                default: return base.TypeToSqlString(type);
+            }
+        }
+
+        protected override string AutoincrementSuffix
+        {
+            get { return "AUTOINCREMENT"; }
+        }
+
+        public override void CreateSchema(SchemaInfo schema)
+        {
+            foreach (var table in schema.Tables)
+                CreateTable(table, true);
+        }
+    }
+
+    public class SqlServerSchemaMutator : SchemaMutator
+    {
+        public SqlServerSchemaMutator(DbConnection connection, bool readOnly)
+            : base(readOnly ? null : connection, new SqlServerRetriever(connection))
+        {
+        }
+
+        protected override string TypeToSqlString(TypeInfo type)
+        {
+            string nullable = type.Nullable ? "" : " NOT NULL";
+            switch (type.BasicType)
+            {
+                case BasicType.Autoincrement: return "BIGINT" + nullable;
+                case BasicType.Long: return "BIGINT" + nullable;
+                default: return base.TypeToSqlString(type);
+            }
+        }
+
+        protected override string AutoincrementSuffix
+        {
+            get { return "IDENTITY(1,1)"; }
+        }
+
+        public override void CreateSchema(SchemaInfo schema)
+        {
+            foreach (var table in schema.Tables)
+                CreateTable(table, false);
+            foreach (var table in schema.Tables)
+                foreach (var foreignKey in table.ForeignKeys)
+                    ExecuteSql(@"ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}] ({4})".Fmt(
+                        table.Name,
+                        foreignKey.Name,
+                        foreignKey.ColumnNames.JoinString(", "),
+                        foreignKey.ReferencedTableName,
+                        foreignKey.ReferencedColumnNames.JoinString(", ")
+                    ));
         }
     }
 }
