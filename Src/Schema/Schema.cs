@@ -72,6 +72,22 @@ namespace RT.SqlChain.Schema
             }
         }
 
+        public bool IsForeignKeyCompatibleWith(TypeInfo other)
+        {
+            if (this.BasicType == BasicType.Autoincrement && other.BasicType != BasicType.Long && other.BasicType != BasicType.Autoincrement)
+                return false;
+            else if (other.BasicType == BasicType.Autoincrement && this.BasicType != BasicType.Long && this.BasicType != BasicType.Autoincrement)
+                return false;
+            else if (this.BasicType != other.BasicType && this.BasicType != BasicType.Autoincrement && other.BasicType != BasicType.Autoincrement)
+                return false;
+            // basic types are compatible
+            else if (this.Length != other.Length)
+                return false;
+            // lengths are compatible
+            else
+                return true;
+        }
+
         public void Validate()
         {
             if (BasicType == BasicType.FixText || BasicType == BasicType.FixBinary)
@@ -100,7 +116,7 @@ namespace RT.SqlChain.Schema
         private List<TableInfo> _tables = new List<TableInfo>();
 
         /// <summary>
-        /// Enumerates all tables in this schema.
+        /// Enumerates all tables in this schema in no particular order.
         /// </summary>
         public IEnumerable<TableInfo> Tables
         {
@@ -153,6 +169,32 @@ namespace RT.SqlChain.Schema
             return null;
         }
 
+        /// <summary>
+        /// Enumerates all the indexes defined in this schema, in no particular order.
+        /// </summary>
+        public IEnumerable<IndexInfo> Indexes
+        {
+            get
+            {
+                foreach (var table in _tables)
+                    foreach (var index in table.Indexes)
+                        yield return index;
+            }
+        }
+
+        /// <summary>
+        /// Enumerates all the foreign keys defined in this schema, in no particular order.
+        /// </summary>
+        public IEnumerable<ForeignKeyInfo> ForeignKeys
+        {
+            get
+            {
+                foreach (var table in _tables)
+                    foreach (var key in table.ForeignKeys)
+                        yield return key;
+            }
+        }
+
         public void XmlDeclassifyFixup()
         {
             foreach (var table in _tables)
@@ -174,6 +216,21 @@ namespace RT.SqlChain.Schema
             // TODO
             // All foreign key names must be distinct
             // TODO
+
+            // Foreign key columns must be the same type as the referenced columns
+            foreach (var fk in ForeignKeys)
+                foreach (var cols in fk.Columns.Zip(fk.ReferencedColumns))
+                    if (!cols.E1.Type.IsForeignKeyCompatibleWith(cols.E2.Type))
+                        throw new SchemaValidationException("Foreign key [{0}] ([{1}] => [{2}]): columns [{3}] => [{4}] use types incompatible for foreign key purposes in some DBMSs ({5} vs {6}).".Fmt(fk.Name, fk.Table.Name, fk.ReferencedTable.Name, cols.E1.Name, cols.E2.Name, cols.E1.Type, cols.E2.Type));
+
+            // Indexes not allowed on certain column types
+            foreach (var index in Indexes)
+                foreach (var col in index.Columns)
+                {
+                    // MS SQL Server cannot index NVAR*(MAX) columns
+                    if ((col.Type.BasicType == BasicType.VarText || col.Type.BasicType == BasicType.VarBinary) && col.Type.Length == null)
+                        throw new SchemaValidationException("Index [{0}] on table [{1}] references column [{2}], which is of type {3} with maximum length. Some DBMSs cannot index such columns.".Fmt(index.Name, index.Table.Name, col.Name, col.Type.BasicType));
+                }
         }
 
         public override string ToString()
@@ -438,6 +495,17 @@ namespace RT.SqlChain.Schema
         public List<string> ColumnNames = new List<string>();
         public IndexKind Kind;
 
+        public IEnumerable<ColumnInfo> Columns
+        {
+            get
+            {
+                if (Table == null)
+                    throw new InvalidOperationException("Cannot enumerate index columns because the IndexInfo is not bound to a table. See also ColumnNames.");
+                foreach (var colName in ColumnNames)
+                    yield return Table.Column(colName);
+            }
+        }
+
         /// <summary>
         /// Verifies that this class is consistent. Throws a <see cref="SchemaValidationException"/> if an
         /// inconsistency is found.
@@ -473,6 +541,48 @@ namespace RT.SqlChain.Schema
         public string ReferencedTableName;
         public List<string> ReferencedColumnNames = new List<string>();
 
+        public IEnumerable<ColumnInfo> Columns
+        {
+            get
+            {
+                if (Table == null)
+                    throw new InvalidOperationException("Cannot enumerate foreign key columns because the ForeignKeyInfo is not bound to a table. See also ColumnNames.");
+                foreach (var col in ColumnNames)
+                    yield return Table.Column(col);
+            }
+        }
+
+        public IEnumerable<ColumnInfo> ReferencedColumns
+        {
+            get
+            {
+                if (Table == null)
+                    throw new InvalidOperationException("Cannot enumerate foreign key referenced columns because the ForeignKeyInfo is not bound to a table. See also ReferencedColumnNames.");
+                foreach (var col in ReferencedColumnNames)
+                    yield return ReferencedTable.Column(col);
+            }
+        }
+
+        public TableInfo ReferencedTable
+        {
+            get
+            {
+                return Schema.Table(ReferencedTableName);
+            }
+        }
+
+        public SchemaInfo Schema
+        {
+            get
+            {
+                if (Table == null)
+                    throw new InvalidOperationException("Cannot retrieve foreign key's containing schema because the ForeignKeyInfo is not bound to a table.");
+                if (Table.Schema == null)
+                    throw new InvalidOperationException("Cannot retrieve foreign key's containing schema because the ForeignKeyInfo's Table is not bound to a schema.");
+                return Table.Schema;
+            }
+        }
+
         /// <summary>
         /// Verifies that this class is consistent. Throws a <see cref="SchemaValidationException"/> if an
         /// inconsistency is found.
@@ -507,7 +617,7 @@ namespace RT.SqlChain.Schema
     }
 
     /// <summary>
-    /// Thrown by various .Validate methods to indicate that validation failed.
+    /// Thrown by various Validate methods to indicate that validation failed.
     /// </summary>
     public class SchemaValidationException : Exception
     {

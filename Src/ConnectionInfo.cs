@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using IQToolkit.Data;
 using IQToolkit.Data.Common;
 using IQToolkit.Data.Mapping;
 using RT.SqlChain.Schema;
+using RT.Util;
 using RT.Util.Xml;
 
 namespace RT.SqlChain
@@ -104,6 +106,8 @@ namespace RT.SqlChain
             }
         }
 
+        private static bool _iqtoolkitLoaded = false;
+
         private static Type tryFindDescendantOfType(Type type, string @namespace)
         {
             Type result;
@@ -121,6 +125,15 @@ namespace RT.SqlChain
             }
 
             // Look in all other app domain assemblies, but use assembly name as an optimization
+            if (!_iqtoolkitLoaded)
+            {
+                // Even if the IQToolkit.Data.*.dll (iqtoolkit providers) assemblies are referenced, they may not necessarily
+                // be automatically loaded into the current appdomain - for example, they won't if none of their types are
+                // used directly and the program starts with the current directory set somewhere away from exe path.
+                foreach (var filename in Directory.GetFiles(PathUtil.AppPath, "IQToolkit.Data.*.dll"))
+                    Assembly.LoadFrom(filename);
+                _iqtoolkitLoaded = true;
+            }
             foreach (var assy in AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains(@namespace)))
             {
                 result = tryFindDescendantOfType(assy, type, @namespace);

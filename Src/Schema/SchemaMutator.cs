@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Text;
-using RT.Util.ExtensionMethods;
 using RT.Util;
+using RT.Util.ExtensionMethods;
 
 namespace RT.SqlChain.Schema
 {
     public abstract class SchemaMutator
     {
         protected DbConnection Connection { get; private set; }
-        protected IRetriever Retriever { get; private set; }
+        protected SchemaRetriever Retriever { get; private set; }
 
         /// <summary>
         /// If null, logging is disabled. Otherwise every SQL query executed is logged to this instance.
@@ -19,7 +20,7 @@ namespace RT.SqlChain.Schema
 
         /// <param name="connection">May be null - in which case no actual schema changes will be made</param>
         /// <param name="retriever">May be null - in which case certain operations only on certain DBMSs only will result in <see cref="NullReferenceException"/>.</param>
-        public SchemaMutator(DbConnection connection, IRetriever retriever)
+        public SchemaMutator(DbConnection connection, SchemaRetriever retriever)
         {
             Connection = connection;
             Retriever = retriever;
@@ -49,8 +50,6 @@ namespace RT.SqlChain.Schema
             {
                 case BasicType.FixText: return "NCHAR({0})".Fmt(type.Length.Value) + nullable;
                 case BasicType.FixBinary: return "BINARY({0})".Fmt(type.Length.Value) + nullable;
-                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
-                case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.Boolean: return "BIT" + nullable;
                 case BasicType.Byte: return "TINYINT" + nullable;
                 case BasicType.Short: return "SMALLINT" + nullable;
@@ -121,12 +120,19 @@ namespace RT.SqlChain.Schema
 
             ExecuteSql(sql.ToString());
         }
+
+        protected void CreateNormalIndex(IndexInfo index)
+        {
+            if (index.Kind != IndexKind.Normal)
+                throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
+            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString("[", "]", ", ")));
+        }
     }
 
     public class SqliteSchemaMutator : SchemaMutator
     {
         public SqliteSchemaMutator(DbConnection connection, bool readOnly)
-            : base(readOnly ? null : connection, new SqliteRetriever(connection))
+            : base(readOnly ? null : connection, new SqliteSchemaRetriever(connection))
         {
         }
 
@@ -135,6 +141,8 @@ namespace RT.SqlChain.Schema
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
             {
+                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
+                case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.Autoincrement: return "INTEGER" + nullable;
                 case BasicType.Long: return "INTEGER" + nullable;
                 default: return base.TypeToSqlString(type);
@@ -150,13 +158,15 @@ namespace RT.SqlChain.Schema
         {
             foreach (var table in schema.Tables)
                 CreateTable(table, true);
+            foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
+                CreateNormalIndex(index);
         }
     }
 
     public class SqlServerSchemaMutator : SchemaMutator
     {
         public SqlServerSchemaMutator(DbConnection connection, bool readOnly)
-            : base(readOnly ? null : connection, new SqlServerRetriever(connection))
+            : base(readOnly ? null : connection, new SqlServerSchemaRetriever(connection))
         {
         }
 
@@ -165,6 +175,8 @@ namespace RT.SqlChain.Schema
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
             {
+                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "(MAX)" : "({0})".Fmt(type.Length.Value)) + nullable;
+                case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "(MAX)" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.Autoincrement: return "BIGINT" + nullable;
                 case BasicType.Long: return "BIGINT" + nullable;
                 default: return base.TypeToSqlString(type);
@@ -189,6 +201,8 @@ namespace RT.SqlChain.Schema
                         foreignKey.ReferencedTableName,
                         foreignKey.ReferencedColumnNames.JoinString(", ")
                     ));
+            foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
+                CreateNormalIndex(index);
         }
     }
 }

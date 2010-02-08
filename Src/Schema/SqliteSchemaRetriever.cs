@@ -8,18 +8,16 @@ using RT.Util.ExtensionMethods;
 
 namespace RT.SqlChain.Schema
 {
-    public class SqliteRetriever : IRetriever
+    public class SqliteSchemaRetriever : SchemaRetriever
     {
-        private DbConnection _connection;
-
-        public SqliteRetriever(DbConnection connection)
+        public SqliteSchemaRetriever(DbConnection connection)
+            : base(connection)
         {
-            _connection = connection;
         }
 
         private IEnumerable<DataRow> getSchema(string schemaSetName)
         {
-            return _connection.GetSchema(schemaSetName).Rows.Cast<DataRow>();
+            return Connection.GetSchema(schemaSetName).Rows.Cast<DataRow>();
         }
 
         private IEnumerable<DataRow> getSchema(string schemaSetName, Func<DataRow, bool> filter)
@@ -27,50 +25,21 @@ namespace RT.SqlChain.Schema
             return getSchema(schemaSetName).Where(filter);
         }
 
-        public SchemaInfo RetrieveSchema()
-        {
-            var schema = new SchemaInfo();
-
-            foreach (var table in RetrieveTables())
-                schema.AddTable(table);
-
-            schema.Validate();
-            return schema;
-        }
-
-        public IEnumerable<TableInfo> RetrieveTables()
+        public override IEnumerable<TableInfo> RetrieveTables()
         {
             var schTables = getSchema("Tables", row => row["TABLE_TYPE"].ToString().EqualsNoCase("table"));
-            foreach (var schTable in schTables)
+            foreach (var schTable in schTables.OrderBy(r => r["TABLE_NAME"].ToString()))
                 yield return RetrieveTable(schTable["TABLE_NAME"].ToString());
         }
 
-        public TableInfo RetrieveTable(string tableName)
-        {
-            var table = new TableInfo();
-            table.Name = tableName;
-
-            foreach (var column in RetrieveColumns(tableName))
-                table.AddColumn(column);
-
-            foreach (var index in RetrieveIndexes(tableName))
-                table.AddIndex(index);
-
-            foreach (var fk in RetrieveForeignKeys(tableName))
-                table.AddForeignKey(fk);
-
-            table.Validate();
-            return table;
-        }
-
-        public IEnumerable<IndexInfo> RetrieveIndexes(string tableName)
+        public override IEnumerable<IndexInfo> RetrieveIndexes(string tableName)
         {
             var schIndexes = getSchema("Indexes", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName));
-            foreach (var schIndex in schIndexes)
-                yield return RetrieveIndex(schIndex);
+            foreach (var schIndex in schIndexes.OrderBy(r => r["INDEX_NAME"].ToString()))
+                yield return retrieveIndex(schIndex);
         }
 
-        public IndexInfo RetrieveIndex(DataRow schIndex)
+        private IndexInfo retrieveIndex(DataRow schIndex)
         {
             var index = new IndexInfo();
             bool isPrimary = schIndex["PRIMARY_KEY"].ToString().EqualsNoCase("true");
@@ -91,12 +60,12 @@ namespace RT.SqlChain.Schema
             return index;
         }
 
-        public IEnumerable<ForeignKeyInfo> RetrieveForeignKeys(string tableName)
+        public override IEnumerable<ForeignKeyInfo> RetrieveForeignKeys(string tableName)
         {
             var schFKs = getSchema("ForeignKeys", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName) && row["CONSTRAINT_TYPE"].ToString().EqualsNoCase("FOREIGN KEY"));
-            var FKs = schFKs.GroupBy(row => row["FKEY_TO_TABLE"].ToString(), StringComparer.InvariantCultureIgnoreCase);
+            var FKs = schFKs.GroupBy(row => row["CONSTRAINT_NAME"].ToString(), StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (var group in FKs)
+            foreach (var group in FKs.OrderBy(fk => fk.Key))
             {
                 var allNames = group.Select(r => r["CONSTRAINT_NAME"].ToString()).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
                 var allTableNames = group.Select(r => r["TABLE_NAME"].ToString()).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
@@ -121,31 +90,31 @@ namespace RT.SqlChain.Schema
             }
         }
 
-        public IEnumerable<ColumnInfo> RetrieveColumns(string tableName)
+        public override IEnumerable<ColumnInfo> RetrieveColumns(string tableName)
         {
             var schColumns = getSchema("Columns", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName));
-            foreach (DataRow schColumn in schColumns)
-                yield return RetrieveColumn(schColumn);
+            foreach (DataRow schColumn in schColumns.OrderBy(r => Convert.ToInt32(r["ORDINAL_POSITION"])))
+                yield return retrieveColumn(schColumn);
         }
 
-        public ColumnInfo RetrieveColumn(DataRow schColumn)
+        private ColumnInfo retrieveColumn(DataRow schColumn)
         {
             var col = new ColumnInfo();
             col.Name = schColumn["COLUMN_NAME"].ToString();
             col.TableName = schColumn["TABLE_NAME"].ToString();
-            col.Type = RetrieveType(schColumn);
+            col.Type = retrieveType(schColumn);
             col.Validate();
             return col;
         }
 
-        public TypeInfo RetrieveType(DataRow schColumn)
+        private TypeInfo retrieveType(DataRow schColumn)
         {
-            var result = retrieveType(schColumn);
+            var result = retrieveTypeNonValidated(schColumn);
             result.Validate();
             return result;
         }
 
-        private TypeInfo retrieveType(DataRow schColumn)
+        private TypeInfo retrieveTypeNonValidated(DataRow schColumn)
         {
             var type = new TypeInfo();
             type.Nullable = schColumn["IS_NULLABLE"].ToString().EqualsNoCase("true");

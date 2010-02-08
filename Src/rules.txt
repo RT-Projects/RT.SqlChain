@@ -8,3 +8,8 @@
 
   Base classes, such as DbConnection for example, should be used to comply with the above. Create
   specific instances dynamically where necessary - e.g. see DbProviderFactories.
+  
+  The IQToolkit provider implementations should be referenced from the application using SqlChain.
+  The application should reference the IQToolkit libraries for all providers it intends to support, even
+  if it doesn't directly use the types defined in those libraries. This is so that the build process copies
+  the DLLs to the build output directory.
