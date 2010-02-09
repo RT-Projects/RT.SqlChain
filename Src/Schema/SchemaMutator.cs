@@ -55,6 +55,7 @@ namespace RT.SqlChain.Schema
                 case BasicType.Short: return "SMALLINT" + nullable;
                 case BasicType.Int: return "INT" + nullable;
                 case BasicType.Double: return "FLOAT" + nullable;
+                case BasicType.DateTime: return "DATETIME" + nullable;
                 default:
                     throw new InternalError("BasicType {0} must be overridden in descendants.".Fmt(type.BasicType));
             }

@@ -202,7 +202,7 @@ namespace RT.SqlChain.Schema
                     type.Length = null;
                     return type;
 
-                default: throw new Exception("SqliteRetriever doesn't know how to convert SQL type \"{0}\".".Fmt(sqlType));
+                default: throw new Exception("{0} doesn't know how to convert SQL type \"{1}\".".Fmt(this.GetType().FullName, sqlType));
             }
         }
     }

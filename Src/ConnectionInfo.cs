@@ -208,6 +208,13 @@ namespace RT.SqlChain
                 }.ConnectionString;
             return conn;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is SqliteConnectionInfo))
+                return false;
+            return ((SqliteConnectionInfo) obj).FileName.Equals(FileName, StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 
     /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
@@ -274,6 +281,14 @@ namespace RT.SqlChain
                     {"Trusted_Connection", "True"},
                 }.ConnectionString;
             return conn;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var objSql = obj as SqlServerConnectionInfo;
+            if (objSql == null)
+                return false;
+            return objSql.Server.Equals(Server, StringComparison.InvariantCultureIgnoreCase) && objSql.Database.Equals(Database, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

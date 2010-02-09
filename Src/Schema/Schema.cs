@@ -27,6 +27,7 @@ namespace RT.SqlChain.Schema
         Int,
         Long,
         Double,
+        DateTime,
     }
 
     public enum IndexKind
@@ -67,6 +68,7 @@ namespace RT.SqlChain.Schema
                 case BasicType.Int: return "int" + (Nullable ? "?" : "");
                 case BasicType.Long: return "long" + (Nullable ? "?" : "");
                 case BasicType.Double: return "double" + (Nullable ? "?" : "");
+                case BasicType.DateTime: return "DateTime" + (Nullable ? "?" : "");
                 default:
                     throw new Exception("Unknown BasicType");
             }
