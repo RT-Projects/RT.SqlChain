@@ -215,6 +215,11 @@ namespace RT.SqlChain
                 return false;
             return ((SqliteConnectionInfo) obj).FileName.Equals(FileName, StringComparison.InvariantCultureIgnoreCase);
         }
+
+        public override int GetHashCode()
+        {
+            return FileName.ToLowerInvariant().GetHashCode();
+        }
     }
 
     /// <summary>Describes an SqlChain connection to a Microsoft SQL Server database.</summary>
@@ -289,6 +294,11 @@ namespace RT.SqlChain
             if (objSql == null)
                 return false;
             return objSql.Server.Equals(Server, StringComparison.InvariantCultureIgnoreCase) && objSql.Database.Equals(Database, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return Server.ToLowerInvariant().GetHashCode() + Database.ToLowerInvariant().GetHashCode();
         }
     }
 }

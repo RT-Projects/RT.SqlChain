@@ -102,7 +102,7 @@ namespace RT.SqlChain.Schema
 
         public override string ToString()
         {
-            return "<Type: {0}, {1}{2}>".Fmt(BasicType, Nullable ? "NULL" : "NOT NULL", Length == null ? "" : ", len={0}".Fmt(Length.Value));
+            return "Type: {0}, {1}{2}".Fmt(BasicType, Nullable ? "NULL" : "NOT NULL", Length == null ? "" : ", len={0}".Fmt(Length.Value));
         }
     }
 
