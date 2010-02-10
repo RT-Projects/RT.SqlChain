@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <Retriever type="SqliteRetrieverParams">
+    <ConnectionString>Data Source=./TestDB.db3;Version=3;FailIfMissing=true;</ConnectionString>
+  </Retriever>
+  <Generators>
+    <item type="XmlSchemaGenerator">
+      <ExcludeTables/>
+      <OutputFile>./TestDB.schema.xml</OutputFile>
+    </item>
+    <item type="SqlChainGenerator">
+      <ExcludeTables/>
+      <Namespace>SqlChainTests</Namespace>
+      <ClassName>TestDB</ClassName>
+      <OutputFile_Db>./TestDB.g.cs</OutputFile_Db>
+    </item>
+  </Generators>
+</item>
