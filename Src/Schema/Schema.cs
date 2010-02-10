@@ -5,13 +5,6 @@ using RT.Util.ExtensionMethods;
 using RT.Util.Xml;
 using RT.Util;
 
-// TODO:
-// - default values
-// - FK on conflict clauses
-// - FK deferrable/deferred
-//
-// - more complete Validate()
-
 namespace RT.SqlChain.Schema
 {
     public enum BasicType
