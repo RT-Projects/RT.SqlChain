@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reflection;
+using NUnit.Direct;
 using NUnit.Framework;
+using RT.SqlChain;
 using RT.Util;
 
 namespace SqlChainTests
@@ -8,14 +10,34 @@ namespace SqlChainTests
     [TestFixture]
     public partial class Tests
     {
+        //SqliteConnectionInfo _connSqlite;
+        //SqlServerConnectionInfo _connSqlServer;
+
+        //TestDB _dbSqlite;
+        //TestDB _dbSqlServer;
+
         [TestFixtureSetUp]
         public void Init()
         {
+            //_connSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
+            //_connSqlServer = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB");
+
+            //// These deletions must succeed even if the schemas were properly deleted on last run.
+            //_connSqlite.DeleteSchema();
+            //_connSqlServer.DeleteSchema();
+
+            //TestDB.CreateSchema(_connSqlite);
+            //TestDB.CreateSchema(_connSqlServer);
+
+            //_dbSqlite = new TestDB(_connSqlite);
+            //_dbSqlServer = new TestDB(_connSqlServer);
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
+            //_connSqlite.DeleteSchema();
+            //_connSqlServer.DeleteSchema();
         }
 
         [Test]
@@ -65,20 +87,9 @@ namespace SqlChainTests
     {
         static void Main(string[] args)
         {
-            if (false)
-            {
-                Testing.GenerateTestingCode(@"..\..\main\common\SqlChain\Tests\Program.cs", "Run Tests", Assembly.GetExecutingAssembly().GetExportedTypes(),
-                    typeof(TestFixtureAttribute), typeof(TestFixtureSetUpAttribute), typeof(TestAttribute), typeof(TestFixtureTearDownAttribute));
-            }
-            else
-            {
-                #region Run Tests
-                #endregion
-
-                Console.WriteLine("");
-                Console.WriteLine("Tests passed; press Enter to exit.");
-                Console.ReadLine();
-            }
+            NUnitDirect.RunTestsOnAssembly(Assembly.GetEntryAssembly());
+            Console.WriteLine("Press Enter to exit.");
+            Console.ReadLine();
         }
     }
 }

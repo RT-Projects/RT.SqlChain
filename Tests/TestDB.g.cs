@@ -21,10 +21,10 @@ namespace SqlChainTests
     /// <remarks>
     /// <para>General database utility methods should accept a <see cref="TestDB.Transaction"/>
     /// object, and make changes through that. On failure such methods should throw an exception; on success just leave normally.</para>
-    /// <para>Other methods that require database access should call ExecuteInTransaction and process any exceptions as
+    /// <para>Other methods that require database access should call <see cref="ExecuteInTransaction"/> and process any exceptions as
     /// appropriate for the situation. An exception always means that the transaction did not commit.</para>
-    /// <para>A method catching exceptions thrown by another method taking a <see cref="TestDB.Transaction"/>
-    /// object should not let the transaction commit as a general rule, by rethrowing the caught or a new exception.</para>
+    /// <para>A method that catches exceptions thrown by another method taking a <see cref="TestDB.Transaction"/>
+    /// object should, as a general rule, rethrow the caught or a new exception, as otherwise the transaction would commit.</para>
     /// </remarks>
     sealed partial class TestDB : IDisposable
     {
@@ -48,6 +48,9 @@ namespace SqlChainTests
         {
             ConnectionInfo = connInfo;
             dbProvider = connInfo.CreateEntityProvider(connInfo.CreateConnection(), typeof(Transaction));
+#if DEBUG
+            dbProvider.Log = Console.Out;
+#endif
             dbProvider.StartUsingConnection();
         }
 
@@ -87,6 +90,9 @@ namespace SqlChainTests
             {
                 conn.Open();
                 var mutator = connectionInfo.CreateSchemaMutator(conn, false);
+#if DEBUG
+                mutator.Log = Console.Out;
+#endif
                 mutator.CreateSchema(schema);
             }
         }
@@ -117,36 +123,61 @@ namespace SqlChainTests
             }
         }
 
+        /// <summary>
+        /// Completely erases the schema represented by the <paramref name="connectionInfo"/> class.
+        /// This method succeeds if and only if the schema no longer exists on return. It will likely fail if
+        /// there exist connections to the schema.
+        /// </summary>
+        public static void DeleteSchema(ConnectionInfo connectionInfo)
+        {
+            connectionInfo.DeleteSchema();
+        }
+
         #region Record types (one for each table)
 
         /// <summary>
-        /// Represents a single row of the AllTypesNotNulls table. The instances of this class are
+        /// Represents a single row of the AllTypesNotNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
         public partial class AllTypesNotNull
         {
+            /// <summary>Represents the ColAutoincrement column in the AllTypesNotNull table. (Type: Long, NOT NULL)</summary>
             public long ColAutoincrement { get; set; }
+            /// <summary>Represents the ColVarText1 column in the AllTypesNotNull table. (Type: VarText, NOT NULL, len=1)</summary>
             public string ColVarText1 { get; set; }
+            /// <summary>Represents the ColVarText100 column in the AllTypesNotNull table. (Type: VarText, NOT NULL, len=100)</summary>
             public string ColVarText100 { get; set; }
+            /// <summary>Represents the ColVarTextMax column in the AllTypesNotNull table. (Type: VarText, NOT NULL)</summary>
             public string ColVarTextMax { get; set; }
+            /// <summary>Represents the ColVarBinary1 column in the AllTypesNotNull table. (Type: VarBinary, NOT NULL, len=1)</summary>
             public byte[] ColVarBinary1 { get; set; }
+            /// <summary>Represents the ColVarBinary100 column in the AllTypesNotNull table. (Type: VarBinary, NOT NULL, len=100)</summary>
             public byte[] ColVarBinary100 { get; set; }
+            /// <summary>Represents the ColVarBinaryMax column in the AllTypesNotNull table. (Type: VarBinary, NOT NULL)</summary>
             public byte[] ColVarBinaryMax { get; set; }
+            /// <summary>Represents the ColFixText5 column in the AllTypesNotNull table. (Type: FixText, NOT NULL, len=5)</summary>
             public string ColFixText5 { get; set; }
+            /// <summary>Represents the ColFixBinary5 column in the AllTypesNotNull table. (Type: FixBinary, NOT NULL, len=5)</summary>
             public byte[] ColFixBinary5 { get; set; }
+            /// <summary>Represents the ColBoolean column in the AllTypesNotNull table. (Type: Boolean, NOT NULL)</summary>
             public bool ColBoolean { get; set; }
+            /// <summary>Represents the ColByte column in the AllTypesNotNull table. (Type: Byte, NOT NULL)</summary>
             public byte ColByte { get; set; }
+            /// <summary>Represents the ColShort column in the AllTypesNotNull table. (Type: Short, NOT NULL)</summary>
             public short ColShort { get; set; }
+            /// <summary>Represents the ColInt column in the AllTypesNotNull table. (Type: Int, NOT NULL)</summary>
             public int ColInt { get; set; }
+            /// <summary>Represents the ColLong column in the AllTypesNotNull table. (Type: Long, NOT NULL)</summary>
             public long ColLong { get; set; }
+            /// <summary>Represents the ColDouble column in the AllTypesNotNull table. (Type: Double, NOT NULL)</summary>
             public double ColDouble { get; set; }
+            /// <summary>Represents the ColDateTime column in the AllTypesNotNull table. (Type: DateTime, NOT NULL)</summary>
             public DateTime ColDateTime { get; set; }
 
-            /// <summary>
-            /// Implement this partial method to define a custom <see cref="ToString"/> conversion.
-            /// </summary>
+            /// <summary>Implement this partial method to define a custom <see cref="ToString"/> conversion.</summary>
             partial void ToStringCustom(ref string result);
 
+            /// <summary>Returns a string representation of this object.</summary>
             public override string ToString()
             {
                 string custom = null;
@@ -178,32 +209,46 @@ namespace SqlChainTests
         }
 
         /// <summary>
-        /// Represents a single row of the AllTypesNulls table. The instances of this class are
+        /// Represents a single row of the AllTypesNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
         public partial class AllTypesNull
         {
+            /// <summary>Represents the ColVarText1 column in the AllTypesNull table. (Type: VarText, NULL, len=1)</summary>
             public string ColVarText1 { get; set; }
+            /// <summary>Represents the ColVarText100 column in the AllTypesNull table. (Type: VarText, NULL, len=100)</summary>
             public string ColVarText100 { get; set; }
+            /// <summary>Represents the ColVarTextMax column in the AllTypesNull table. (Type: VarText, NULL)</summary>
             public string ColVarTextMax { get; set; }
+            /// <summary>Represents the ColVarBinary1 column in the AllTypesNull table. (Type: VarBinary, NULL, len=1)</summary>
             public byte[] ColVarBinary1 { get; set; }
+            /// <summary>Represents the ColVarBinary100 column in the AllTypesNull table. (Type: VarBinary, NULL, len=100)</summary>
             public byte[] ColVarBinary100 { get; set; }
+            /// <summary>Represents the ColVarBinaryMax column in the AllTypesNull table. (Type: VarBinary, NULL)</summary>
             public byte[] ColVarBinaryMax { get; set; }
+            /// <summary>Represents the ColFixText5 column in the AllTypesNull table. (Type: FixText, NULL, len=5)</summary>
             public string ColFixText5 { get; set; }
+            /// <summary>Represents the ColFixBinary5 column in the AllTypesNull table. (Type: FixBinary, NULL, len=5)</summary>
             public byte[] ColFixBinary5 { get; set; }
+            /// <summary>Represents the ColBoolean column in the AllTypesNull table. (Type: Boolean, NULL)</summary>
             public bool? ColBoolean { get; set; }
+            /// <summary>Represents the ColByte column in the AllTypesNull table. (Type: Byte, NULL)</summary>
             public byte? ColByte { get; set; }
+            /// <summary>Represents the ColShort column in the AllTypesNull table. (Type: Short, NULL)</summary>
             public short? ColShort { get; set; }
+            /// <summary>Represents the ColInt column in the AllTypesNull table. (Type: Int, NULL)</summary>
             public int? ColInt { get; set; }
+            /// <summary>Represents the ColLong column in the AllTypesNull table. (Type: Long, NULL)</summary>
             public long? ColLong { get; set; }
+            /// <summary>Represents the ColDouble column in the AllTypesNull table. (Type: Double, NULL)</summary>
             public double? ColDouble { get; set; }
+            /// <summary>Represents the ColDateTime column in the AllTypesNull table. (Type: DateTime, NULL)</summary>
             public DateTime? ColDateTime { get; set; }
 
-            /// <summary>
-            /// Implement this partial method to define a custom <see cref="ToString"/> conversion.
-            /// </summary>
+            /// <summary>Implement this partial method to define a custom <see cref="ToString"/> conversion.</summary>
             partial void ToStringCustom(ref string result);
 
+            /// <summary>Returns a string representation of this object.</summary>
             public override string ToString()
             {
                 string custom = null;
@@ -298,6 +343,9 @@ namespace SqlChainTests
             }
         }
 
+        /// <summary>
+        /// Represents a transaction within a <see cref="DB"/> database connection. Do not instantiate this class directly. Instead, use <see cref="DB.ExecuteInTransaction"/>.
+        /// </summary>
         public sealed partial class Transaction
         {
             /// <summary>
@@ -363,16 +411,23 @@ namespace SqlChainTests
             }
 
             /// <summary>Executes the specified SQL command.</summary>
-            public int ExecuteCommand(string sql)
+            public int ExecuteSql(string sql)
             {
                 return DbProvider.ExecuteCommand(sql);
             }
 
-            /// <summary>Executes the specified SQL command with the specified parameter values.</summary>
-            public int ExecuteCommand(string sql, params object[] paramValues)
+            /// <summary>Executes the specified SQL command with the specified parameter value.</summary>
+            public int ExecuteSql<T0>(string sql, T0 p0)
             {
-                var cmd = new QueryCommand(sql, new QueryParameter[0]);
-                return DbProvider.ExecuteCommand(cmd, paramValues);
+                var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null) });
+                return DbProvider.ExecuteCommand(cmd, new object[] { p0 });
+            }
+
+            /// <summary>Executes the specified SQL command with the specified parameter values.</summary>
+            public int ExecuteSql<T0, T1>(string sql, T0 p0, T1 p1)
+            {
+                var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null), new QueryParameter("p1", typeof(T1), null) });
+                return DbProvider.ExecuteCommand(cmd, new object[] { p0, p1 });
             }
         }
 

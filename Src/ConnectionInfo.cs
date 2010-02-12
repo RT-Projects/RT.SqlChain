@@ -9,6 +9,7 @@ using IQToolkit.Data.Mapping;
 using RT.SqlChain.Schema;
 using RT.Util;
 using RT.Util.Xml;
+using RT.Util.ExtensionMethods;
 
 namespace RT.SqlChain
 {
@@ -40,6 +41,12 @@ namespace RT.SqlChain
         /// returned connection. This method will not fail just because the database does not exist.
         /// </summary>
         public abstract DbConnection CreateConnectionForSchemaCreation();
+
+        /// <summary>
+        /// Completely erases the schema represented by this class. This method succeeds if and only if
+        /// the schema no longer exists on return. It will likely fail if there exist connections to the schema.
+        /// </summary>
+        public abstract void DeleteSchema();
 
         /// <summary>
         /// Instantiates an IQToolkit "entity provider" for a new connection described by this class, using
@@ -212,6 +219,16 @@ namespace RT.SqlChain
             return conn;
         }
 
+        public override void DeleteSchema()
+        {
+            try
+            {
+                File.SetAttributes(FileName, FileAttributes.Normal);
+                File.Delete(FileName);
+            }
+            catch (FileNotFoundException) { }
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is SqliteConnectionInfo))
@@ -294,17 +311,42 @@ namespace RT.SqlChain
             return conn;
         }
 
+        public override void DeleteSchema()
+        {
+                using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+                {
+                    master.ConnectionString = new DbConnectionStringBuilder()
+                        {
+                            {"Server", Server},
+                            {"Database", "master"},
+                            {"Trusted_Connection", "True"},
+                        }.ConnectionString;
+                    master.Open();
+                    try
+                    {
+                        using (var cmd = master.CreateCommand())
+                        {
+                            cmd.CommandText = "DROP DATABASE " + Database;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (DbException)
+                    {
+                    }
+            }
+        }
+
         public override bool Equals(object obj)
         {
             var objSql = obj as SqlServerConnectionInfo;
             if (objSql == null)
                 return false;
-            return objSql.Server.Equals(Server, StringComparison.InvariantCultureIgnoreCase) && objSql.Database.Equals(Database, StringComparison.InvariantCultureIgnoreCase);
+            return objSql.Server.EqualsNoCase(Server) && objSql.Database.EqualsNoCase(Database);
         }
 
         public override int GetHashCode()
         {
-            return Server.ToLowerInvariant().GetHashCode() + Database.ToLowerInvariant().GetHashCode();
+            return Server.ToLowerInvariant().GetHashCode() + Database.ToLowerInvariant().GetHashCode() * 17;
         }
     }
 }

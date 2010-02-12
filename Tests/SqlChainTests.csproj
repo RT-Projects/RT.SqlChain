@@ -8,8 +8,8 @@
     <ProjectGuid>{E6816A5C-409A-4008-9E22-87F7FC430B4B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SqlChainTests</RootNamespace>
-    <AssemblyName>SqlChainTests</AssemblyName>
+    <RootNamespace>RT.SqlChainTests</RootNamespace>
+    <AssemblyName>RT.SqlChainTests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>..\Builds\$(Configuration)</OutputPath>
@@ -32,9 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.4.6.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+    <Reference Include="nunit.framework, Version=2.5.3.9345, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\RT.NUnitDirect\ThirdParty\NUnit-2.4.6\nunit.framework.dll</HintPath>
+      <HintPath>..\..\RT.NUnitDirect\ThirdParty\NUnit-2.5.3\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -55,6 +55,10 @@
     <Compile Include="TestDB.g.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\RT.NUnitDirect\Src\RT.NUnitDirect.csproj">
+      <Project>{275ECB9D-F75E-45F8-BB34-AD122589D2CC}</Project>
+      <Name>NUnitDirect</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\IQToolkit\Src\Sources\IQToolkit.Data.SqlClient\IQToolkit.Data.SqlClient.csproj">
       <Project>{3F003957-1B67-440B-BAFE-C2B32886A429}</Project>
       <Name>IQToolkit.Data.SqlClient</Name>
