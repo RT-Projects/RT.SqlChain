@@ -180,6 +180,9 @@ namespace RT.SqlChain
             FileName = fileName;
         }
 
+        // For XmlClassify
+        protected SqliteConnectionInfo() { }
+
         public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
             return new SqliteSchemaMutator(conn, readOnly);
@@ -235,6 +238,9 @@ namespace RT.SqlChain
             Server = server;
             Database = database;
         }
+
+        // For XmlClassify
+        protected SqlServerConnectionInfo() { }
 
         public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
