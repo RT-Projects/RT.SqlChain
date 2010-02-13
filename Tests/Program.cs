@@ -1,49 +1,99 @@
 ﻿using System;
 using System.Reflection;
+using System.Xml.Linq;
 using NUnit.Direct;
 using NUnit.Framework;
 using RT.SqlChain;
 using RT.Util;
+using RT.Util.Xml;
 
 namespace SqlChainTests
 {
-    [TestFixture]
-    public partial class Tests
-    {
-        //SqliteConnectionInfo _connSqlite;
-        //SqlServerConnectionInfo _connSqlServer;
+    public enum DbmsKind { Sqlite, SqlServer }
 
-        //TestDB _dbSqlite;
-        //TestDB _dbSqlServer;
+    [TestFixture]
+    public static partial class Tests
+    {
+        private static LoggerBase _log = new ConsoleLogger();
+
+        private static SqliteConnectionInfo _connSqlite;
+        private static SqlServerConnectionInfo _connSqlServer;
+
+        private static TestDB _dbSqlite;
+        private static TestDB _dbSqlServer;
+
+        private static ConnectionInfo getConnInfo(DbmsKind kind)
+        {
+            switch (kind)
+            {
+                case DbmsKind.Sqlite: return _connSqlite;
+                case DbmsKind.SqlServer: return _connSqlServer;
+                default: throw new InternalError("hoffsho");
+            }
+        }
+
+        private static TestDB getConn(DbmsKind kind)
+        {
+            switch (kind)
+            {
+                case DbmsKind.Sqlite: return _dbSqlite;
+                case DbmsKind.SqlServer: return _dbSqlServer;
+                default: throw new InternalError("fhsohsk");
+            }
+        }
 
         [TestFixtureSetUp]
-        public void Init()
+        public static void Init()
         {
-            //_connSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
-            //_connSqlServer = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB");
+            _log.Info("Init() ...");
 
-            //// These deletions must succeed even if the schemas were properly deleted on last run.
-            //_connSqlite.DeleteSchema();
-            //_connSqlServer.DeleteSchema();
+            _connSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
+            _connSqlServer = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB");
 
-            //TestDB.CreateSchema(_connSqlite);
-            //TestDB.CreateSchema(_connSqlServer);
+            _connSqlite.Log = _connSqlServer.Log = Console.Out;
 
-            //_dbSqlite = new TestDB(_connSqlite);
-            //_dbSqlServer = new TestDB(_connSqlServer);
+            // These deletions must succeed even if the schemas were properly deleted on last run.
+            _connSqlite.DeleteSchema();
+            _connSqlServer.DeleteSchema();
+
+            TestDB.CreateSchema(_connSqlite);
+            TestDB.CreateSchema(_connSqlServer);
+
+            _dbSqlite = new TestDB(_connSqlite);
+            _dbSqlServer = new TestDB(_connSqlServer);
+
+            _log.Info("Init() complete");
         }
 
         [TestFixtureTearDown]
-        public void Cleanup()
+        public static void Cleanup()
         {
-            //_connSqlite.DeleteSchema();
-            //_connSqlServer.DeleteSchema();
+            _log.Info("Cleanup() ...");
+
+            _dbSqlite.Dispose();
+            _dbSqlite = null;
+            _connSqlite.DeleteSchema();
+
+            _dbSqlServer.Dispose();
+            _dbSqlServer.Dispose();
+            _dbSqlServer = null;
+            _connSqlServer.DeleteSchema();
+
+            _log.Info("Cleanup() complete");
         }
 
         [Test]
-        public void SuccessfulTest()
+        public static void RoundtripTest([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            // this is just a test that always succeeds, to aid TeamCity setup until actual tests become available
+            var conninfo = getConnInfo(kind);
+            using (var dbconn = conninfo.CreateConnection())
+            {
+                dbconn.Open();
+                var retr = conninfo.CreateSchemaRetriever(dbconn);
+                var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema());
+                var xmlExpected = XElement.Parse(TestDB.SchemaAsXml);
+                Assert.IsTrue(XNode.DeepEquals(xmlActual, xmlExpected));
+            }
         }
     }
 
@@ -70,9 +120,6 @@ namespace SqlChainTests
     /// - That the PK / unique constraint is enforced (abort mode)
     /// - That the FK constraint is enforced (abort mode)
     /// - That cascading updates/deletes work?
-    /// 
-    /// Creation + Retrieval:
-    /// - That the schema roundtrips correctly (retrieved XML equals source XML)
     /// 
     /// Schema delete:
     /// - That the scema has disappeared

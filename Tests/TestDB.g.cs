@@ -48,9 +48,7 @@ namespace SqlChainTests
         {
             ConnectionInfo = connInfo;
             dbProvider = connInfo.CreateEntityProvider(connInfo.CreateConnection(), typeof(Transaction));
-#if DEBUG
-            dbProvider.Log = Console.Out;
-#endif
+            Log = connInfo.Log;
             dbProvider.StartUsingConnection();
         }
 
@@ -68,7 +66,9 @@ namespace SqlChainTests
         }
 
         /// <summary>
-        /// Gets or sets a class used for logging all executed queries. Set to null to disable logging.
+        /// Gets or sets a class used for logging all executed queries. Set to null to disable logging. Note that
+        /// this property is automatically initialized to <see cref="ConnectionInfo.Log"/> when TestDB is
+        /// instantiated.
         /// </summary>
         public TextWriter Log
         {
@@ -90,9 +90,6 @@ namespace SqlChainTests
             {
                 conn.Open();
                 var mutator = connectionInfo.CreateSchemaMutator(conn, false);
-#if DEBUG
-                mutator.Log = Console.Out;
-#endif
                 mutator.CreateSchema(schema);
             }
         }
@@ -430,6 +427,12 @@ namespace SqlChainTests
                 return DbProvider.ExecuteCommand(cmd, new object[] { p0, p1 });
             }
         }
+
+        /// <summary>
+        /// Gets the schema of this database connection as an XML string with no XML declaration
+        /// (parseable by <see cref="XElement"/> but not <see cref="XDocument"/>).
+        /// </summary>
+        public static string SchemaAsXml { get { return _schemaAsXml; } }
 
         private static string _schemaAsXml = @"
 <item>

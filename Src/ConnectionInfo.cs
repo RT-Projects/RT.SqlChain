@@ -21,6 +21,18 @@ namespace RT.SqlChain
         protected abstract string ProviderNamespace { get; }
 
         /// <summary>
+        /// Gets/sets a <see cref="TextWriter"/> object used for logging debug information, including
+        /// all SQL queries, associated with this connection. Defaults to null, which disables logging.
+        /// </summary>
+        public TextWriter Log { get; set; }
+
+        /// <summary>
+        /// Creates a schema retriever appropriate for the database engine being used.
+        /// </summary>
+        /// <param name="conn">An open ADO.NET connection to be used for retrieving schema information.</param>
+        public abstract SchemaRetriever CreateSchemaRetriever(DbConnection conn);
+
+        /// <summary>
         /// Creates a schema mutator appropriate for the database engine being used.
         /// </summary>
         /// <param name="conn">An open ADO.NET connection to be used by the mutator for
@@ -190,9 +202,14 @@ namespace RT.SqlChain
         // For XmlClassify
         protected SqliteConnectionInfo() { }
 
+        public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
+        {
+            return new SqliteSchemaRetriever(conn);
+        }
+
         public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
-            return new SqliteSchemaMutator(conn, readOnly);
+            return new SqliteSchemaMutator(conn, readOnly) { Log = Log };
         }
 
         public override DbConnection CreateConnection()
@@ -227,6 +244,12 @@ namespace RT.SqlChain
                 File.Delete(FileName);
             }
             catch (FileNotFoundException) { }
+
+            if (Log != null)
+            {
+                Log.WriteLine("Schema deleted.");
+                Log.WriteLine();
+            }
         }
 
         public override bool Equals(object obj)
@@ -259,9 +282,14 @@ namespace RT.SqlChain
         // For XmlClassify
         protected SqlServerConnectionInfo() { }
 
+        public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
+        {
+            return new SqlServerSchemaRetriever(conn);
+        }
+
         public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
         {
-            return new SqlServerSchemaMutator(conn, readOnly);
+            return new SqlServerSchemaMutator(conn, readOnly) { Log = Log };
         }
 
         public override DbConnection CreateConnection()
@@ -313,26 +341,37 @@ namespace RT.SqlChain
 
         public override void DeleteSchema()
         {
-                using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
-                {
-                    master.ConnectionString = new DbConnectionStringBuilder()
+            using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+            {
+                master.ConnectionString = new DbConnectionStringBuilder()
                         {
                             {"Server", Server},
                             {"Database", "master"},
                             {"Trusted_Connection", "True"},
                         }.ConnectionString;
-                    master.Open();
-                    try
+                master.Open();
+                try
+                {
+                    using (var cmd = master.CreateCommand())
                     {
-                        using (var cmd = master.CreateCommand())
+                        cmd.CommandText = "DROP DATABASE " + Database;
+                        if (Log != null)
                         {
-                            cmd.CommandText = "DROP DATABASE " + Database;
-                            cmd.ExecuteNonQuery();
+                            Log.WriteLine(cmd.CommandText);
+                            Log.WriteLine();
                         }
+                        cmd.ExecuteNonQuery();
                     }
-                    catch (DbException)
-                    {
-                    }
+                }
+                catch (DbException)
+                {
+                }
+            }
+
+            if (Log != null)
+            {
+                Log.WriteLine("Schema deleted.");
+                Log.WriteLine();
             }
         }
 
