@@ -55,4 +55,11 @@
     <MakeDir Directories="$(OutputPathMerged)"/>
     <Exec Command='"$(ILMerge)" "/out:$(OutputPathMerged)\$(ProjectName).exe" "@(MergeFiles, &apos;" "&apos;)"'/>
   </Target>
+
+
+  <Target Name="Test" DependsOnTargets="Merge">
+    <UsingTask TaskName="NUnit" AssemblyFile="$(teamcity_dotnet_nunitlauncher_msbuild_task)" />
+    <NUnit Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
+  </Target>
+
 </Project>

@@ -28,4 +28,11 @@
     <MSBuild Projects="Build$(ProjectName)Single.proj"
              Properties="Configuration=Release;ProjectName=$(ProjectName);BuildsPath=$(BuildsPath);Version=$(Version)"/>
   </Target>
+
+
+  <Target Name="BuildAndTest">
+    <MSBuild Projects="Build$(ProjectName)Single.proj"
+             Properties="Configuration=Release;ProjectName=$(ProjectName);BuildsPath=$(BuildsPath);Version=$(Version)"
+             Targets="Test"/>
+  </Target>
 </Project>
