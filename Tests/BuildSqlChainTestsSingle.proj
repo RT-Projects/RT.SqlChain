@@ -58,8 +58,8 @@
 
 
   <Target Name="Test" DependsOnTargets="Merge">
-    <UsingTask TaskName="NUnit" AssemblyFile="$(teamcity_dotnet_nunitlauncher_msbuild_task)" />
-    <NUnit Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
+    <UsingTask TaskName="NUnitTeamCity" AssemblyFile="$(teamcity_dotnet_nunitlauncher_msbuild_task)" />
+    <NUnitTeamCity Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
   </Target>
 
 </Project>
