@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          DefaultTargets="Merge"
          ToolsVersion="3.5">
-  <Import Project="..\..\..\..\main\common\Build\CommonImports.proj"/>
+  <Import Project="..\Build\CommonImports.proj"/>
   <UsingTask Condition="'$(TEAMCITY_VERSION)'!=''" TaskName="NUnitTeamCity" AssemblyFile="$(teamcity_dotnet_nunitlauncher_msbuild_task)" />
 
   <PropertyGroup>
@@ -32,7 +32,7 @@
 
 
   <Target Name="Build" DependsOnTargets="Init">
-    <MSBuild Projects="..\SqlChain.sln" Targets="Rebuild"
+    <MSBuild Projects="$(ProjectName).sln" Targets="Rebuild"
              Properties="Configuration=$(Configuration);Platform=$(Platform);OutputPath=$(OutputPathRaw)\;IntermediateOutputPath=$(OutputPathTemp)\;BaseIntermediateOutputPath=$(OutputPathTemp)\"/>
   </Target>
 

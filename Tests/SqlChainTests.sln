@@ -1,21 +1,21 @@
 
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlChainTests", "Tests\SqlChainTests.csproj", "{E6816A5C-409A-4008-9E22-87F7FC430B4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlChainTests", "SqlChainTests.csproj", "{E6816A5C-409A-4008-9E22-87F7FC430B4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlChain", "Src\RT.SqlChain.csproj", "{EBA99FD1-9619-429E-9308-6DBDE322B3BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlChain", "..\Src\RT.SqlChain.csproj", "{EBA99FD1-9619-429E-9308-6DBDE322B3BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit", "..\IQToolkit\Src\Sources\IQToolkit\IQToolkit.csproj", "{0DA62A7C-3B40-456F-A4B2-B3E19ED4080E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit", "..\..\IQToolkit\Src\Sources\IQToolkit\IQToolkit.csproj", "{0DA62A7C-3B40-456F-A4B2-B3E19ED4080E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data", "..\IQToolkit\Src\Sources\IQToolkit.Data\IQToolkit.Data.csproj", "{3A356510-9C25-4A94-87B9-EEB31B6A1303}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data", "..\..\IQToolkit\Src\Sources\IQToolkit.Data\IQToolkit.Data.csproj", "{3A356510-9C25-4A94-87B9-EEB31B6A1303}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data.SQLite", "..\IQToolkit\Src\Sources\IQToolkit.Data.SQLite\IQToolkit.Data.SQLite.csproj", "{E008624B-2344-420A-A514-4B2AD89906EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data.SQLite", "..\..\IQToolkit\Src\Sources\IQToolkit.Data.SQLite\IQToolkit.Data.SQLite.csproj", "{E008624B-2344-420A-A514-4B2AD89906EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data.SqlClient", "..\IQToolkit\Src\Sources\IQToolkit.Data.SqlClient\IQToolkit.Data.SqlClient.csproj", "{3F003957-1B67-440B-BAFE-C2B32886A429}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit.Data.SqlClient", "..\..\IQToolkit\Src\Sources\IQToolkit.Data.SqlClient\IQToolkit.Data.SqlClient.csproj", "{3F003957-1B67-440B-BAFE-C2B32886A429}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "..\RT.Util\Src\RT.Util.csproj", "{8D0FE79C-AD8D-475C-9E6F-9CAE85365B5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "..\..\RT.Util\Src\RT.Util.csproj", "{8D0FE79C-AD8D-475C-9E6F-9CAE85365B5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitDirect", "..\RT.NUnitDirect\Src\RT.NUnitDirect.csproj", "{275ECB9D-F75E-45F8-BB34-AD122589D2CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitDirect", "..\..\RT.NUnitDirect\Src\RT.NUnitDirect.csproj", "{275ECB9D-F75E-45F8-BB34-AD122589D2CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

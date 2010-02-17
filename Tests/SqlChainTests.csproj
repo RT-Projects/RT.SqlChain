@@ -95,8 +95,8 @@
   -->
   <Target Name="AfterBuild">
     <ItemGroup>
-      <NativeBinaries Include="..\..\thirdparty\Sqlite-3.6.19\Portable\sqlite*.so" />
-      <NativeBinaries Include="..\..\thirdparty\Sqlite-3.6.19\Portable\sqlite3.dll" />
+      <NativeBinaries Include="..\thirdparty\Sqlite-3.6.19\Portable\sqlite*.so" />
+      <NativeBinaries Include="..\thirdparty\Sqlite-3.6.19\Portable\sqlite3.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
   </Target>

@@ -1,9 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          DefaultTargets="Version;Build" ToolsVersion="3.5">
-  <Import Project="..\..\..\..\main\common\Build\CommonImports.proj"/>
+  <Import Project="..\Build\CommonImports.proj"/>
   <PropertyGroup>
     <ProjectName>SqlChainTests</ProjectName>
-    <BuildsPath Condition="'$(BuildsPath)'==''">..\..\..\..\builds</BuildsPath>
+    <BuildsPath Condition="'$(BuildsPath)'==''">..\..\..\builds</BuildsPath>
   </PropertyGroup>
 
 
