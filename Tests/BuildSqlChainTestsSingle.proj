@@ -2,6 +2,7 @@
          DefaultTargets="Merge"
          ToolsVersion="3.5">
   <Import Project="..\..\..\..\main\common\Build\CommonImports.proj"/>
+  <UsingTask Condition="'$(TEAMCITY_VERSION)'!=''" TaskName="NUnitTeamCity" AssemblyFile="$(teamcity_dotnet_nunitlauncher_msbuild_task)" />
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
@@ -59,7 +60,7 @@
 
 
   <Target Name="Test" DependsOnTargets="Merge">
-    <NUnit Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
+    <NUnitTeamCity Platform="x86" NUnitVersion="2.5.3" Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
   </Target>
 
 </Project>
