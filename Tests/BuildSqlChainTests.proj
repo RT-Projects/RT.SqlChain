@@ -1,0 +1,31 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+         DefaultTargets="Version;Build" ToolsVersion="3.5">
+  <Import Project="..\..\..\..\main\common\Build\CommonImports.proj"/>
+  <PropertyGroup>
+    <ProjectName>SqlChainTests</ProjectName>
+    <BuildsPath Condition="'$(BuildsPath)'==''">..\..\..\..\builds</BuildsPath>
+  </PropertyGroup>
+
+
+  <Target Name="Version">
+    <AssemblyVersion AssemblyFile="Properties\AssemblyInfo.cs" VersionTemplate="?.?.$(BuildId).$(ChangeId)">
+      <Output TaskParameter="Version" PropertyName="Version"/>
+    </AssemblyVersion>
+  </Target>
+
+
+  <Target Name="Build" DependsOnTargets="BuildRelease">
+  </Target>
+
+
+  <Target Name="BuildDebug">
+    <MSBuild Projects="Build$(ProjectName)Single.proj"
+             Properties="Configuration=Debug;ProjectName=$(ProjectName);BuildsPath=$(BuildsPath);Version=$(Version)"/>
+  </Target>
+
+
+  <Target Name="BuildRelease">
+    <MSBuild Projects="Build$(ProjectName)Single.proj"
+             Properties="Configuration=Release;ProjectName=$(ProjectName);BuildsPath=$(BuildsPath);Version=$(Version)"/>
+  </Target>
+</Project>

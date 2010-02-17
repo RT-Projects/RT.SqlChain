@@ -12,17 +12,17 @@ namespace SqlChainTests
     public enum DbmsKind { Sqlite, SqlServer }
 
     [TestFixture]
-    public static partial class Tests
+    public partial class Tests
     {
-        private static LoggerBase _log = new ConsoleLogger();
+        private LoggerBase _log = new ConsoleLogger();
 
-        private static SqliteConnectionInfo _connSqlite;
-        private static SqlServerConnectionInfo _connSqlServer;
+        private SqliteConnectionInfo _connSqlite;
+        private SqlServerConnectionInfo _connSqlServer;
 
-        private static TestDB _dbSqlite;
-        private static TestDB _dbSqlServer;
+        private TestDB _dbSqlite;
+        private TestDB _dbSqlServer;
 
-        private static ConnectionInfo getConnInfo(DbmsKind kind)
+        private ConnectionInfo getConnInfo(DbmsKind kind)
         {
             switch (kind)
             {
@@ -32,7 +32,7 @@ namespace SqlChainTests
             }
         }
 
-        private static TestDB getConn(DbmsKind kind)
+        private TestDB getConn(DbmsKind kind)
         {
             switch (kind)
             {
@@ -43,7 +43,7 @@ namespace SqlChainTests
         }
 
         [TestFixtureSetUp]
-        public static void Init()
+        public void Init()
         {
             _log.Info("Init() ...");
 
@@ -66,7 +66,7 @@ namespace SqlChainTests
         }
 
         [TestFixtureTearDown]
-        public static void Cleanup()
+        public void Cleanup()
         {
             _log.Info("Cleanup() ...");
 
@@ -83,7 +83,7 @@ namespace SqlChainTests
         }
 
         [Test]
-        public static void RoundtripTest([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
+        public void RoundtripTest([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
             var conninfo = getConnInfo(kind);
             using (var dbconn = conninfo.CreateConnection())
