@@ -14,28 +14,25 @@ namespace RT.SqlChainTests
     {
         private LoggerBase _log = new ConsoleLogger();
 
-        private SqliteConnectionInfo _connSqlite;
-        private SqlServerConnectionInfo _connSqlServer;
-
-        private TestDB _dbSqlite;
-        private TestDB _dbSqlServer;
+        private SqliteConnectionInfo _conninfoSqlite;
+        private SqlServerConnectionInfo _conninfoSqlServer;
 
         private ConnectionInfo getConnInfo(DbmsKind kind)
         {
             switch (kind)
             {
-                case DbmsKind.Sqlite: return _connSqlite;
-                case DbmsKind.SqlServer: return _connSqlServer;
+                case DbmsKind.Sqlite: return _conninfoSqlite;
+                case DbmsKind.SqlServer: return _conninfoSqlServer;
                 default: throw new InternalError("hoffsho");
             }
         }
 
-        private TestDB getConn(DbmsKind kind)
+        private TestDB createConn(DbmsKind kind)
         {
             switch (kind)
             {
-                case DbmsKind.Sqlite: return _dbSqlite;
-                case DbmsKind.SqlServer: return _dbSqlServer;
+                case DbmsKind.Sqlite: return new TestDB(_conninfoSqlite);
+                case DbmsKind.SqlServer: return new TestDB(_conninfoSqlServer);
                 default: throw new InternalError("fhsohsk");
             }
         }
@@ -51,17 +48,15 @@ namespace RT.SqlChainTests
         {
             _log.Info("Init() ...");
 
-            _connSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
-            _connSqlite.Log = Console.Out;
-            _connSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
-            TestDB.CreateSchema(_connSqlite);
-            _dbSqlite = new TestDB(_connSqlite);
+            _conninfoSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
+            _conninfoSqlite.Log = Console.Out;
+            _conninfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+            TestDB.CreateSchema(_conninfoSqlite);
 
-            _connSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
-            _connSqlServer.Log = Console.Out;
-            _connSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
-            TestDB.CreateSchema(_connSqlServer);
-            _dbSqlServer = new TestDB(_connSqlServer);
+            _conninfoSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
+            _conninfoSqlServer.Log = Console.Out;
+            _conninfoSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+            TestDB.CreateSchema(_conninfoSqlServer);
 
             _log.Info("Init() complete");
         }
@@ -71,13 +66,8 @@ namespace RT.SqlChainTests
         {
             _log.Info("Cleanup() ...");
 
-            _dbSqlite.Dispose();
-            _dbSqlite = null;
-            _connSqlite.DeleteSchema();
-
-            _dbSqlServer.Dispose();
-            _dbSqlServer = null;
-            // _connSqlServer.DeleteSchema(); FAILS!!!
+            _conninfoSqlite.DeleteSchema();
+             _conninfoSqlServer.DeleteSchema();
 
             _log.Info("Cleanup() complete");
         }
@@ -87,8 +77,6 @@ namespace RT.SqlChainTests
     /// Tests TODO list:
     /// 
     /// AllTypesNull / AllTypesNotNull:
-    /// - insertion of actual values [AllTypesNull]
-    /// - insertion of nulls
     /// - update
     /// - delete
     /// - WHERE lookup by each type
