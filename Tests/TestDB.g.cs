@@ -61,6 +61,7 @@ namespace RT.SqlChainTests
             if (dbProvider != null)
             {
                 dbProvider.StopUsingConnection();
+                dbProvider.Connection.Dispose(); // since we created it in the constructor
                 dbProvider = null;
             }
         }
@@ -317,21 +318,22 @@ namespace RT.SqlChainTests
         {
             if (dbProvider.Transaction != null)
                 throw new InvalidOperationException("Another transaction is already active; cannot have more than one active transaction on the same connection.");
-            try
-            {
-                dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
-                action(new Transaction(dbProvider));
-                dbProvider.Transaction.Commit();
-                dbProvider.Transaction = null;
-            }
-            finally
-            {
-                if (dbProvider.Transaction != null)
+            // NOTE: if you make any changes, replicate them in the other ExecuteInTransaction below!
+            using (dbProvider.Transaction = dbProvider.Connection.BeginTransaction())
+                try
                 {
-                    dbProvider.Transaction.Rollback();
+                    action(new Transaction(dbProvider));
+                    dbProvider.Transaction.Commit();
                     dbProvider.Transaction = null;
                 }
-            }
+                finally
+                {
+                    if (dbProvider.Transaction != null)
+                    {
+                        dbProvider.Transaction.Rollback();
+                        dbProvider.Transaction = null;
+                    }
+                }
         }
 
         /// <summary>
@@ -348,22 +350,23 @@ namespace RT.SqlChainTests
         {
             if (dbProvider.Transaction != null)
                 throw new InvalidOperationException("Another transaction is already active; cannot have more than one active transaction on the same connection.");
-            try
-            {
-                dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
-                var result = func(new Transaction(dbProvider));
-                dbProvider.Transaction.Commit();
-                dbProvider.Transaction = null;
-                return result;
-            }
-            finally
-            {
-                if (dbProvider.Transaction != null)
+            // NOTE: if you make any changes, replicate them in the other ExecuteInTransaction above!
+            using (dbProvider.Transaction = dbProvider.Connection.BeginTransaction())
+                try
                 {
-                    dbProvider.Transaction.Rollback();
+                    var result = func(new Transaction(dbProvider));
+                    dbProvider.Transaction.Commit();
                     dbProvider.Transaction = null;
+                    return result;
                 }
-            }
+                finally
+                {
+                    if (dbProvider.Transaction != null)
+                    {
+                        dbProvider.Transaction.Rollback();
+                        dbProvider.Transaction = null;
+                    }
+                }
         }
 
         /// <summary>
@@ -387,7 +390,7 @@ namespace RT.SqlChainTests
             /// <summary>
             /// Provides methods to query and modify the AllTypesNotNulls table of the TestDB database.
             /// </summary>
-            [Table(Name ="AllTypesNotNull")]
+            [Table(Name = "AllTypesNotNull")]
             [Column(Member = "ColAutoincrement", Name = "ColAutoincrement", IsPrimaryKey = true, IsGenerated = true)]
             [Column(Member = "ColVarText1", Name = "ColVarText1")]
             [Column(Member = "ColVarText100", Name = "ColVarText100")]
@@ -412,7 +415,7 @@ namespace RT.SqlChainTests
             /// <summary>
             /// Provides methods to query and modify the AllTypesNulls table of the TestDB database.
             /// </summary>
-            [Table(Name ="AllTypesNull")]
+            [Table(Name = "AllTypesNull")]
             [Column(Member = "ColVarText1", Name = "ColVarText1")]
             [Column(Member = "ColVarText100", Name = "ColVarText100")]
             [Column(Member = "ColVarTextMax", Name = "ColVarTextMax")]

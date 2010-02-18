@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Reflection;
-using System.Xml.Linq;
 using NUnit.Direct;
 using NUnit.Framework;
 using RT.SqlChain;
 using RT.Util;
-using RT.Util.Xml;
 
 namespace RT.SqlChainTests
 {
@@ -54,18 +52,15 @@ namespace RT.SqlChainTests
             _log.Info("Init() ...");
 
             _connSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
-            _connSqlServer = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB");
-
-            _connSqlite.Log = _connSqlServer.Log = Console.Out;
-
-            // These deletions must succeed even if the schemas were properly deleted on last run.
-            _connSqlite.DeleteSchema();
-            _connSqlServer.DeleteSchema();
-
+            _connSqlite.Log = Console.Out;
+            _connSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
             TestDB.CreateSchema(_connSqlite);
-            TestDB.CreateSchema(_connSqlServer);
-
             _dbSqlite = new TestDB(_connSqlite);
+
+            _connSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
+            _connSqlServer.Log = Console.Out;
+            _connSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+            TestDB.CreateSchema(_connSqlServer);
             _dbSqlServer = new TestDB(_connSqlServer);
 
             _log.Info("Init() complete");
@@ -81,25 +76,10 @@ namespace RT.SqlChainTests
             _connSqlite.DeleteSchema();
 
             _dbSqlServer.Dispose();
-            _dbSqlServer.Dispose();
             _dbSqlServer = null;
-            _connSqlServer.DeleteSchema();
+            // _connSqlServer.DeleteSchema(); FAILS!!!
 
             _log.Info("Cleanup() complete");
-        }
-
-        [Test]
-        public void RoundtripTest([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
-        {
-            var conninfo = getConnInfo(kind);
-            using (var dbconn = conninfo.CreateConnection())
-            {
-                dbconn.Open();
-                var retr = conninfo.CreateSchemaRetriever(dbconn);
-                var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema());
-                var xmlExpected = XElement.Parse(TestDB.SchemaAsXml);
-                Assert.IsTrue(XNode.DeepEquals(xmlActual, xmlExpected));
-            }
         }
     }
 
@@ -134,9 +114,6 @@ namespace RT.SqlChainTests
     /// 
     /// Transactions:
     /// - todo
-    /// 
-    /// Schema delete:
-    /// - That the scema has disappeared
     /// 
     /// -------------------------------------
     /// For features not yet implemented:

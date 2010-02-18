@@ -61,6 +61,12 @@ namespace RT.SqlChain
         public abstract void DeleteSchema();
 
         /// <summary>
+        /// Returns true if the schema represented by this class exists, false otherwise. May throw an
+        /// exception if the existence of a schema cannot be determined.
+        /// </summary>
+        public abstract bool SchemaExists();
+
+        /// <summary>
         /// Instantiates an IQToolkit "entity provider" for a new connection described by this class, using
         /// the specified mapping type to map tables/rows onto types/instances.
         /// </summary>
@@ -252,6 +258,11 @@ namespace RT.SqlChain
             }
         }
 
+        public override bool SchemaExists()
+        {
+            return File.Exists(FileName);
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is SqliteConnectionInfo))
@@ -350,8 +361,7 @@ namespace RT.SqlChain
                             {"Trusted_Connection", "True"},
                         }.ConnectionString;
                 master.Open();
-                try
-                {
+                if (schemaExists(master))
                     using (var cmd = master.CreateCommand())
                     {
                         cmd.CommandText = "DROP DATABASE " + Database;
@@ -362,16 +372,42 @@ namespace RT.SqlChain
                         }
                         cmd.ExecuteNonQuery();
                     }
-                }
-                catch (DbException)
-                {
-                }
             }
 
             if (Log != null)
             {
                 Log.WriteLine("Schema deleted.");
                 Log.WriteLine();
+            }
+        }
+
+        public override bool SchemaExists()
+        {
+            using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+            {
+                master.ConnectionString = new DbConnectionStringBuilder()
+                        {
+                            {"Server", Server},
+                            {"Database", "master"},
+                            {"Trusted_Connection", "True"},
+                        }.ConnectionString;
+                master.Open();
+                return schemaExists(master);
+            }
+        }
+
+        private bool schemaExists(DbConnection master)
+        {
+            using (var cmd = master.CreateCommand())
+            {
+                cmd.CommandText = "SELECT Count(*) FROM sys.databases WHERE [name]='{0}'".Fmt(Database);
+                if (Log != null)
+                {
+                    Log.WriteLine(cmd.CommandText);
+                    Log.WriteLine();
+                }
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
             }
         }
 

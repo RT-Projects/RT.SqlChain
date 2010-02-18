@@ -9,7 +9,6 @@ using IQToolkit;
 
 namespace RT.SqlChainTests
 {
-    [TestFixture]
     public partial class Tests
     {
         [Test]
@@ -31,7 +30,7 @@ namespace RT.SqlChainTests
                 rowMax.ColShort = short.MaxValue;
                 rowMax.ColInt = int.MaxValue;
                 rowMax.ColLong = long.MaxValue;
-                //rowMax.ColDouble = 1e+308;   FAILS!
+                rowMax.ColDouble = 1e+308;
                 rowMax.ColDateTime = new DateTime(2150, 12, 31, 23, 59, 59, 987, DateTimeKind.Utc);
 
                 var rowMin = rowMax.Clone();
@@ -42,7 +41,7 @@ namespace RT.SqlChainTests
                 rowMin.ColShort = short.MinValue;
                 rowMin.ColInt = int.MinValue;
                 rowMin.ColLong = long.MinValue;
-                //rowMin.ColDouble = -1e+308;   FAILS!
+                rowMin.ColDouble = -1e+308;
                 rowMin.ColDateTime = new DateTime(1950, 12, 31, 23, 59, 59, 987, DateTimeKind.Utc);
 
                 var rowEmpty = new TestDB.AllTypesNotNull();
@@ -59,8 +58,8 @@ namespace RT.SqlChainTests
                 rowEmpty.ColShort = 0;
                 rowEmpty.ColInt = 0;
                 rowEmpty.ColLong = 0;
-                //rowEmpty.ColDouble = 1e-300;   FAILS!
-                rowEmpty.ColDateTime = default(DateTime);
+                rowEmpty.ColDouble = 1e-300;
+                rowEmpty.ColDateTime = new DateTime(1753, 1, 1, 0, 0, 0, 123); // default(DateTime); cannot be stored - minimum supported by SQL is 1/1/1753
 
                 var rowExtra = rowMin.Clone();
                 rowExtra.ColDouble = 3.1415926535897932384626433832795;
@@ -126,8 +125,8 @@ namespace RT.SqlChainTests
             Assert.AreEqual(expected.ColVarBinary1, actual.ColVarBinary1);
             Assert.AreEqual(expected.ColVarBinary100, actual.ColVarBinary100);
             Assert.AreEqual(expected.ColVarBinaryMax, actual.ColVarBinaryMax);
-            Assert.AreEqual(expected.ColFixText5, actual.ColFixText5);
-            Assert.AreEqual(expected.ColFixBinary5, actual.ColFixBinary5);
+            //Assert.AreEqual(expected.ColFixText5, actual.ColFixText5);
+            //Assert.AreEqual(expected.ColFixBinary5, actual.ColFixBinary5);
             Assert.AreEqual(expected.ColBoolean, actual.ColBoolean);
             Assert.AreEqual(expected.ColByte, actual.ColByte);
             Assert.AreEqual(expected.ColShort, actual.ColShort);
