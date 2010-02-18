@@ -24,6 +24,7 @@ namespace RT.SqlChain
         /// Gets/sets a <see cref="TextWriter"/> object used for logging debug information, including
         /// all SQL queries, associated with this connection. Defaults to null, which disables logging.
         /// </summary>
+        [XmlIgnore]
         public TextWriter Log { get; set; }
 
         /// <summary>
