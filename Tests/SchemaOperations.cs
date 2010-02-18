@@ -12,7 +12,7 @@ namespace RT.SqlChainTests
     public partial class Tests
     {
         [Test]
-        public void TestSchemaOperations([Values(DbmsKind.Sqlite/*, DbmsKind.SqlServer FAILS! */)] DbmsKind kind)
+        public void TestSchemaOperations([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
             ConnectionInfo conninfo = null;
             switch (kind)

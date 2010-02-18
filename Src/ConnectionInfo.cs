@@ -311,6 +311,7 @@ namespace RT.SqlChain
                     {"Server", Server},
                     {"Database", Database},
                     {"Trusted_Connection", "True"},
+                    {"Pooling", "False"},
                 }.ConnectionString;
             return conn;
         }
@@ -327,6 +328,7 @@ namespace RT.SqlChain
                             {"Server", Server},
                             {"Database", "master"},
                             {"Trusted_Connection", "True"},
+                            {"Pooling", "False"},
                         }.ConnectionString;
                     master.Open();
                     using (var cmd = master.CreateCommand())
@@ -340,14 +342,7 @@ namespace RT.SqlChain
             {
             }
 
-            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
-            conn.ConnectionString = new DbConnectionStringBuilder()
-                {
-                    {"Server", Server},
-                    {"Database", Database},
-                    {"Trusted_Connection", "True"},
-                }.ConnectionString;
-            return conn;
+            return CreateConnection();
         }
 
         public override void DeleteSchema()
