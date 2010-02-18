@@ -60,22 +60,6 @@
           </Type>
         </item>
         <item>
-          <Name>ColFixText5</Name>
-          <Type>
-            <BasicType>FixText</BasicType>
-            <Nullable>False</Nullable>
-            <Length>5</Length>
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixBinary5</Name>
-          <Type>
-            <BasicType>FixBinary</BasicType>
-            <Nullable>False</Nullable>
-            <Length>5</Length>
-          </Type>
-        </item>
-        <item>
           <Name>ColBoolean</Name>
           <Type>
             <BasicType>Boolean</BasicType>
@@ -192,22 +176,6 @@
             <BasicType>VarBinary</BasicType>
             <Nullable>True</Nullable>
             <Length null="1" />
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixText5</Name>
-          <Type>
-            <BasicType>FixText</BasicType>
-            <Nullable>True</Nullable>
-            <Length>5</Length>
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixBinary5</Name>
-          <Type>
-            <BasicType>FixBinary</BasicType>
-            <Nullable>True</Nullable>
-            <Length>5</Length>
           </Type>
         </item>
         <item>

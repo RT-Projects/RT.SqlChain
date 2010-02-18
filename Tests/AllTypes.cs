@@ -23,8 +23,6 @@ namespace RT.SqlChainTests
                 rowMax.ColVarBinary1 = new byte[] { 250 };
                 rowMax.ColVarBinary100 = "some text here".ToUtf8();
                 rowMax.ColVarBinaryMax = "lots of binary! ".Repeat(100).ToUtf8();
-                rowMax.ColFixText5 = "abcde";
-                rowMax.ColFixBinary5 = new byte[] { 1, 2, 3, 4, 5 };
                 rowMax.ColBoolean = true;
                 rowMax.ColByte = byte.MaxValue;
                 rowMax.ColShort = short.MaxValue;
@@ -34,8 +32,6 @@ namespace RT.SqlChainTests
                 rowMax.ColDateTime = new DateTime(2150, 12, 31, 23, 59, 59, 987, DateTimeKind.Utc);
 
                 var rowMin = rowMax.Clone();
-                rowMin.ColFixText5 = "a";
-                rowMin.ColFixBinary5 = new byte[] { 1 };
                 rowMin.ColBoolean = false;
                 rowMin.ColByte = byte.MinValue;
                 rowMin.ColShort = short.MinValue;
@@ -51,8 +47,6 @@ namespace RT.SqlChainTests
                 rowEmpty.ColVarBinary1 = new byte[0];
                 rowEmpty.ColVarBinary100 = new byte[0];
                 rowEmpty.ColVarBinaryMax = new byte[0];
-                rowEmpty.ColFixText5 = "";
-                rowEmpty.ColFixBinary5 = new byte[0];
                 rowEmpty.ColBoolean = false;
                 rowEmpty.ColByte = 0;
                 rowEmpty.ColShort = 0;
@@ -93,9 +87,9 @@ namespace RT.SqlChainTests
                 Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
                 rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarBinary100 = null;
                 Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
-                rowWithNull = rowEmpty.Clone(); rowWithNull.ColFixText5 = null;
+                rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarTextMax = null;
                 Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
-                rowWithNull = rowEmpty.Clone(); rowWithNull.ColFixBinary5 = null;
+                rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarBinaryMax = null;
                 Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
 
                 // Retrieval
@@ -125,8 +119,6 @@ namespace RT.SqlChainTests
             Assert.AreEqual(expected.ColVarBinary1, actual.ColVarBinary1);
             Assert.AreEqual(expected.ColVarBinary100, actual.ColVarBinary100);
             Assert.AreEqual(expected.ColVarBinaryMax, actual.ColVarBinaryMax);
-            //Assert.AreEqual(expected.ColFixText5, actual.ColFixText5);
-            //Assert.AreEqual(expected.ColFixBinary5, actual.ColFixBinary5);
             Assert.AreEqual(expected.ColBoolean, actual.ColBoolean);
             Assert.AreEqual(expected.ColByte, actual.ColByte);
             Assert.AreEqual(expected.ColShort, actual.ColShort);

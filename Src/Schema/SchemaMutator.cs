@@ -48,8 +48,6 @@ namespace RT.SqlChain.Schema
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
             {
-                case BasicType.FixText: return "NCHAR({0})".Fmt(type.Length.Value) + nullable;
-                case BasicType.FixBinary: return "BINARY({0})".Fmt(type.Length.Value) + nullable;
                 case BasicType.Boolean: return "BIT" + nullable;
                 case BasicType.Byte: return "TINYINT" + nullable;
                 case BasicType.Short: return "SMALLINT" + nullable;

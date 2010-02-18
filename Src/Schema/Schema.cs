@@ -11,8 +11,6 @@ namespace RT.SqlChain.Schema
     {
         VarText,
         VarBinary,
-        FixText,
-        FixBinary,
         Boolean,
         Autoincrement,
         Byte,
@@ -50,9 +48,7 @@ namespace RT.SqlChain.Schema
         {
             switch (BasicType)
             {
-                case BasicType.FixText: return "string";
                 case BasicType.VarText: return "string";
-                case BasicType.FixBinary: return "byte[]";
                 case BasicType.VarBinary: return "byte[]";
                 case BasicType.Boolean: return "bool" + (Nullable ? "?" : "");
                 case BasicType.Autoincrement: return "long" + (Nullable ? "?" : "");
@@ -85,19 +81,8 @@ namespace RT.SqlChain.Schema
 
         public void Validate()
         {
-            if (BasicType == BasicType.FixText || BasicType == BasicType.FixBinary)
-            {
-                if (Length == null)
-                    throw new SchemaValidationException("The Length property must not be null for the basic type {0}".Fmt(BasicType));
-            }
-            else if (BasicType == BasicType.VarText || BasicType == BasicType.VarBinary)
-            {
-            }
-            else
-            {
-                if (Length != null)
-                    throw new SchemaValidationException("The Length property must be null for the basic type {0}".Fmt(BasicType));
-            }
+            if (BasicType != BasicType.VarText && BasicType != BasicType.VarBinary && Length != null)
+                throw new SchemaValidationException("The Length property must be null for the basic type {0}".Fmt(BasicType));
         }
 
         public override string ToString()

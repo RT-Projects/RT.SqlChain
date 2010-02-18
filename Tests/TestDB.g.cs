@@ -153,10 +153,6 @@ namespace RT.SqlChainTests
             public byte[] ColVarBinary100 { get; set; }
             /// <summary>Represents the ColVarBinaryMax column in the AllTypesNotNull table. (Type: VarBinary, NOT NULL)</summary>
             public byte[] ColVarBinaryMax { get; set; }
-            /// <summary>Represents the ColFixText5 column in the AllTypesNotNull table. (Type: FixText, NOT NULL, len=5)</summary>
-            public string ColFixText5 { get; set; }
-            /// <summary>Represents the ColFixBinary5 column in the AllTypesNotNull table. (Type: FixBinary, NOT NULL, len=5)</summary>
-            public byte[] ColFixBinary5 { get; set; }
             /// <summary>Represents the ColBoolean column in the AllTypesNotNull table. (Type: Boolean, NOT NULL)</summary>
             public bool ColBoolean { get; set; }
             /// <summary>Represents the ColByte column in the AllTypesNotNull table. (Type: Byte, NOT NULL)</summary>
@@ -192,8 +188,6 @@ namespace RT.SqlChainTests
                 result.Append(" ColVarBinary1='"); result.Append(ColVarBinary1); result.Append('\'');
                 result.Append(" ColVarBinary100='"); result.Append(ColVarBinary100); result.Append('\'');
                 result.Append(" ColVarBinaryMax='"); result.Append(ColVarBinaryMax); result.Append('\'');
-                result.Append(" ColFixText5='"); result.Append(ColFixText5); result.Append('\'');
-                result.Append(" ColFixBinary5='"); result.Append(ColFixBinary5); result.Append('\'');
                 result.Append(" ColBoolean='"); result.Append(ColBoolean); result.Append('\'');
                 result.Append(" ColByte='"); result.Append(ColByte); result.Append('\'');
                 result.Append(" ColShort='"); result.Append(ColShort); result.Append('\'');
@@ -237,10 +231,6 @@ namespace RT.SqlChainTests
             public byte[] ColVarBinary100 { get; set; }
             /// <summary>Represents the ColVarBinaryMax column in the AllTypesNull table. (Type: VarBinary, NULL)</summary>
             public byte[] ColVarBinaryMax { get; set; }
-            /// <summary>Represents the ColFixText5 column in the AllTypesNull table. (Type: FixText, NULL, len=5)</summary>
-            public string ColFixText5 { get; set; }
-            /// <summary>Represents the ColFixBinary5 column in the AllTypesNull table. (Type: FixBinary, NULL, len=5)</summary>
-            public byte[] ColFixBinary5 { get; set; }
             /// <summary>Represents the ColBoolean column in the AllTypesNull table. (Type: Boolean, NULL)</summary>
             public bool? ColBoolean { get; set; }
             /// <summary>Represents the ColByte column in the AllTypesNull table. (Type: Byte, NULL)</summary>
@@ -275,8 +265,6 @@ namespace RT.SqlChainTests
                 result.Append(" ColVarBinary1='"); result.Append(ColVarBinary1); result.Append('\'');
                 result.Append(" ColVarBinary100='"); result.Append(ColVarBinary100); result.Append('\'');
                 result.Append(" ColVarBinaryMax='"); result.Append(ColVarBinaryMax); result.Append('\'');
-                result.Append(" ColFixText5='"); result.Append(ColFixText5); result.Append('\'');
-                result.Append(" ColFixBinary5='"); result.Append(ColFixBinary5); result.Append('\'');
                 result.Append(" ColBoolean='"); result.Append(ColBoolean); result.Append('\'');
                 result.Append(" ColByte='"); result.Append(ColByte); result.Append('\'');
                 result.Append(" ColShort='"); result.Append(ColShort); result.Append('\'');
@@ -398,8 +386,6 @@ namespace RT.SqlChainTests
             [Column(Member = "ColVarBinary1", Name = "ColVarBinary1")]
             [Column(Member = "ColVarBinary100", Name = "ColVarBinary100")]
             [Column(Member = "ColVarBinaryMax", Name = "ColVarBinaryMax")]
-            [Column(Member = "ColFixText5", Name = "ColFixText5")]
-            [Column(Member = "ColFixBinary5", Name = "ColFixBinary5")]
             [Column(Member = "ColBoolean", Name = "ColBoolean")]
             [Column(Member = "ColByte", Name = "ColByte")]
             [Column(Member = "ColShort", Name = "ColShort")]
@@ -422,8 +408,6 @@ namespace RT.SqlChainTests
             [Column(Member = "ColVarBinary1", Name = "ColVarBinary1")]
             [Column(Member = "ColVarBinary100", Name = "ColVarBinary100")]
             [Column(Member = "ColVarBinaryMax", Name = "ColVarBinaryMax")]
-            [Column(Member = "ColFixText5", Name = "ColFixText5")]
-            [Column(Member = "ColFixBinary5", Name = "ColFixBinary5")]
             [Column(Member = "ColBoolean", Name = "ColBoolean")]
             [Column(Member = "ColByte", Name = "ColByte")]
             [Column(Member = "ColShort", Name = "ColShort")]
@@ -522,22 +506,6 @@ namespace RT.SqlChainTests
             <BasicType>VarBinary</BasicType>
             <Nullable>False</Nullable>
             <Length null=""1"" />
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixText5</Name>
-          <Type>
-            <BasicType>FixText</BasicType>
-            <Nullable>False</Nullable>
-            <Length>5</Length>
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixBinary5</Name>
-          <Type>
-            <BasicType>FixBinary</BasicType>
-            <Nullable>False</Nullable>
-            <Length>5</Length>
           </Type>
         </item>
         <item>
@@ -657,22 +625,6 @@ namespace RT.SqlChainTests
             <BasicType>VarBinary</BasicType>
             <Nullable>True</Nullable>
             <Length null=""1"" />
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixText5</Name>
-          <Type>
-            <BasicType>FixText</BasicType>
-            <Nullable>True</Nullable>
-            <Length>5</Length>
-          </Type>
-        </item>
-        <item>
-          <Name>ColFixBinary5</Name>
-          <Type>
-            <BasicType>FixBinary</BasicType>
-            <Nullable>True</Nullable>
-            <Length>5</Length>
           </Type>
         </item>
         <item>

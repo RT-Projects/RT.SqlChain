@@ -159,14 +159,8 @@ namespace RT.SqlChain.Schema
 
                 case "char":
                 case "nchar":
-                    type.BasicType = BasicType.FixText;
-                    assertHasLength();
-                    return type;
-
                 case "binary":
-                    type.BasicType = BasicType.FixBinary;
-                    assertHasLength();
-                    return type;
+                    throw new Exception("SqlChain does not support fixed-width types, in particular, '{0}'.".Fmt(sqlType));
 
                 case "bit":
                 case "bool":
