@@ -6,7 +6,7 @@
         <item>
           <Name>ColAutoincrement</Name>
           <Type>
-            <BasicType>Long</BasicType>
+            <BasicType>Autoincrement</BasicType>
             <Nullable>False</Nullable>
             <Length null="1" />
           </Type>

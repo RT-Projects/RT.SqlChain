@@ -11,7 +11,7 @@ using RT.SqlChain.Schema;
 using RT.Util.ExtensionMethods;
 using RT.Util.Xml;
 
-namespace SqlChainTests
+namespace RT.SqlChainTests
 {
     /// <summary>
     /// Represents a single connection to the TestDB database and
@@ -136,9 +136,9 @@ namespace SqlChainTests
         /// Represents a single row of the AllTypesNotNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
-        public partial class AllTypesNotNull
+        public partial class AllTypesNotNull : ICloneable
         {
-            /// <summary>Represents the ColAutoincrement column in the AllTypesNotNull table. (Type: Long, NOT NULL)</summary>
+            /// <summary>Represents the ColAutoincrement column in the AllTypesNotNull table. (Type: Autoincrement, NOT NULL)</summary>
             public long ColAutoincrement { get; set; }
             /// <summary>Represents the ColVarText1 column in the AllTypesNotNull table. (Type: VarText, NOT NULL, len=1)</summary>
             public string ColVarText1 { get; set; }
@@ -203,13 +203,26 @@ namespace SqlChainTests
                 result.Append('>');
                 return result.ToString();
             }
+
+            object ICloneable.Clone()
+            {
+                return Clone();
+            }
+
+            /// <summary>
+            /// Returns a shallow clone of this row.
+            /// </summary>
+            public AllTypesNotNull Clone()
+            {
+                return (AllTypesNotNull) MemberwiseClone();
+            }
         }
 
         /// <summary>
         /// Represents a single row of the AllTypesNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
-        public partial class AllTypesNull
+        public partial class AllTypesNull : ICloneable
         {
             /// <summary>Represents the ColVarText1 column in the AllTypesNull table. (Type: VarText, NULL, len=1)</summary>
             public string ColVarText1 { get; set; }
@@ -272,6 +285,19 @@ namespace SqlChainTests
                 result.Append(" ColDateTime='"); result.Append(ColDateTime); result.Append('\'');
                 result.Append('>');
                 return result.ToString();
+            }
+
+            object ICloneable.Clone()
+            {
+                return Clone();
+            }
+
+            /// <summary>
+            /// Returns a shallow clone of this row.
+            /// </summary>
+            public AllTypesNull Clone()
+            {
+                return (AllTypesNull) MemberwiseClone();
             }
         }
 
@@ -362,7 +388,7 @@ namespace SqlChainTests
             /// Provides methods to query and modify the AllTypesNotNulls table of the TestDB database.
             /// </summary>
             [Table(Name ="AllTypesNotNull")]
-            [Column(Member = "ColAutoincrement", Name = "ColAutoincrement", IsPrimaryKey = true)]
+            [Column(Member = "ColAutoincrement", Name = "ColAutoincrement", IsPrimaryKey = true, IsGenerated = true)]
             [Column(Member = "ColVarText1", Name = "ColVarText1")]
             [Column(Member = "ColVarText100", Name = "ColVarText100")]
             [Column(Member = "ColVarTextMax", Name = "ColVarTextMax")]
@@ -442,7 +468,7 @@ namespace SqlChainTests
         <item>
           <Name>ColAutoincrement</Name>
           <Type>
-            <BasicType>Long</BasicType>
+            <BasicType>Autoincrement</BasicType>
             <Nullable>False</Nullable>
             <Length null=""1"" />
           </Type>

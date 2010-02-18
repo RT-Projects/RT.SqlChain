@@ -7,7 +7,7 @@ using RT.SqlChain;
 using RT.Util;
 using RT.Util.Xml;
 
-namespace SqlChainTests
+namespace RT.SqlChainTests
 {
     public enum DbmsKind { Sqlite, SqlServer }
 
@@ -40,6 +40,12 @@ namespace SqlChainTests
                 case DbmsKind.SqlServer: return _dbSqlServer;
                 default: throw new InternalError("fhsohsk");
             }
+        }
+
+        private Exception exceptionof(Action action)
+        {
+            try { action(); return null; }
+            catch (Exception e) { return e; }
         }
 
         [TestFixtureSetUp]
@@ -101,7 +107,7 @@ namespace SqlChainTests
     /// Tests TODO list:
     /// 
     /// AllTypesNull / AllTypesNotNull:
-    /// - insertion of actual values
+    /// - insertion of actual values [AllTypesNull]
     /// - insertion of nulls
     /// - update
     /// - delete
@@ -109,6 +115,11 @@ namespace SqlChainTests
     ///   - handling of nulls
     /// - JOIN by each type
     ///   - handling of nulls
+    /// - failing doubles
+    ///
+    /// Autoincrement:
+    /// - correctly autoincremented
+    /// - value can be retrieved
     /// 
     /// PK/FK as follows:
     /// - Non-PK table (unique index + foreign key)
@@ -120,6 +131,9 @@ namespace SqlChainTests
     /// - That the PK / unique constraint is enforced (abort mode)
     /// - That the FK constraint is enforced (abort mode)
     /// - That cascading updates/deletes work?
+    /// 
+    /// Transactions:
+    /// - todo
     /// 
     /// Schema delete:
     /// - That the scema has disappeared

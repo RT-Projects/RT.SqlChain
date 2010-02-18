@@ -10,7 +10,7 @@
     </item>
     <item type="SqlChainGenerator">
       <ExcludeTables/>
-      <Namespace>SqlChainTests</Namespace>
+      <Namespace>RT.SqlChainTests</Namespace>
       <ClassName>TestDB</ClassName>
       <OutputFile_Db>./TestDB.g.cs</OutputFile_Db>
     </item>
