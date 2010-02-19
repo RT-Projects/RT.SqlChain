@@ -1,14 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <item>
-  <Retriever type="SqliteRetrieverParams">
-    <ConnectionString>Data Source=./TestDB.db3;Version=3;FailIfMissing=true;</ConnectionString>
-  </Retriever>
+  <DefaultRetriever>xml</DefaultRetriever>
+  <DefaultGenerators>
+    <item>sqlchain</item>
+  </DefaultGenerators>
+  <Retrievers>
+    <item type="XmlSchemaRetrieverParams" key="xml">
+      <XmlFileName>./TestDB.schema.xml</XmlFileName>
+    </item>
+    <item type="SqliteRetrieverParams" key="sqlite">
+      <ConnectionString>Data Source=./TestDB.db3;Version=3;FailIfMissing=true;</ConnectionString>
+    </item>
+  </Retrievers>
   <Generators>
-    <item type="XmlSchemaGenerator">
+    <item type="XmlSchemaGenerator" key="xml">
       <ExcludeTables/>
       <OutputFile>./TestDB.schema.xml</OutputFile>
     </item>
-    <item type="SqlChainGenerator">
+    <item type="SqlChainGenerator" key="sqlchain">
       <ExcludeTables/>
       <Namespace>RT.SqlChainTests</Namespace>
       <ClassName>TestDB</ClassName>
