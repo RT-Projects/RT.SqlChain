@@ -21,7 +21,7 @@ namespace RT.SqlChainTests
                     conninfo = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB-closetest.db3"));
                     break;
                 case DbmsKind.SqlServer:
-                    conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB_CLOSETEST");
+                    conninfo = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB_CLOSETEST");
                     break;
             }
             conninfo.Log = Console.Out;

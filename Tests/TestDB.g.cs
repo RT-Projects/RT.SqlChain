@@ -68,7 +68,7 @@ namespace RT.SqlChainTests
 
         /// <summary>
         /// Gets or sets a class used for logging all executed queries. Set to null to disable logging. Note that
-        /// this property is automatically initialized to <see cref="ConnectionInfo.Log"/> when TestDB is
+        /// this property is automatically initialized to <see cref="RT.SqlChain.ConnectionInfo.Log"/> when TestDB is
         /// instantiated.
         /// </summary>
         public TextWriter Log
@@ -430,14 +430,14 @@ namespace RT.SqlChainTests
             public int ExecuteSql<T0>(string sql, T0 p0)
             {
                 var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null) });
-                return DbProvider.ExecuteCommand(cmd, new object[] { p0 });
+                return new DbEntityProvider.Executor(DbProvider).ExecuteCommand(cmd, new object[] { p0 });
             }
 
             /// <summary>Executes the specified SQL command with the specified parameter values.</summary>
             public int ExecuteSql<T0, T1>(string sql, T0 p0, T1 p1)
             {
                 var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null), new QueryParameter("p1", typeof(T1), null) });
-                return DbProvider.ExecuteCommand(cmd, new object[] { p0, p1 });
+                return new DbEntityProvider.Executor(DbProvider).ExecuteCommand(cmd, new object[] { p0, p1 });
             }
         }
 

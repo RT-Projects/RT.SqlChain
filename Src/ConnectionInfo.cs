@@ -73,11 +73,8 @@ namespace RT.SqlChain
         /// </summary>
         public virtual DbEntityProvider CreateEntityProvider(DbConnection connection, Type mappingType)
         {
-            var language = (QueryLanguage) Activator.CreateInstance(QueryLanguageType);
-            var provider = (DbEntityProvider) Activator.CreateInstance(ProviderType,
-                new object[] { connection, new AttributeMapping(language, mappingType), QueryPolicy.Default });
-
-            return provider;
+            return (DbEntityProvider) Activator.CreateInstance(ProviderType,
+                new object[] { connection, new AttributeMapping(mappingType), QueryPolicy.Default });
         }
 
         #region ProviderType, QueryLanguageType and AdoConnectionType

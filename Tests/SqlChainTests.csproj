@@ -102,4 +102,10 @@
     </ItemGroup>
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
   </Target>
+  <PropertyGroup>
+    <PreBuildEvent>dir /b /ar /s $(ProjectDir)*.g.cs
+if not errorlevel 1 p4 edit $(ProjectDir)....g.cs
+set errorlevel=0
+dbsourcegen gen $(ProjectDir)TestDB.dsgx</PreBuildEvent>
+  </PropertyGroup>
 </Project>
