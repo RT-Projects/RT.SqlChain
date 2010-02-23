@@ -53,7 +53,7 @@ namespace RT.SqlChainTests
             _conninfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
             TestDB.CreateSchema(_conninfoSqlite);
 
-            _conninfoSqlServer = new SqlServerConnectionInfo("LOCALHOST", "SQLCHAIN_TEST_DB");
+            _conninfoSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
             _conninfoSqlServer.Log = Console.Out;
             _conninfoSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
             TestDB.CreateSchema(_conninfoSqlServer);
