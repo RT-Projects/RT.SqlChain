@@ -60,7 +60,7 @@
 
 
   <Target Name="Test" DependsOnTargets="Merge">
-    <NUnitTeamCity Platform="x86" NUnitVersion="2.5.3" Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
+    <NUnitTeamCity Platform="x86" NUnitVersion="NUnit-2.5.3" Assemblies="$(OutputPathMerged)\$(ProjectName).exe"/>
   </Target>
 
 </Project>
