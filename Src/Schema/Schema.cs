@@ -39,8 +39,8 @@ namespace RT.SqlChain.Schema
         /// </summary>
         public bool Nullable { get; set; }
         /// <summary>
-        /// Only non-null for text/binary types. Is required for Fix* types. For Var* types, if
-        /// this value is null for a Var* type, the longest possible value is used.
+        /// For VarText and VarBinary, specifies the length in characters/bytes, or null if the longest possible value is used.
+        /// For all other types, always null.
         /// </summary>
         public int? Length { get; set; }
 
