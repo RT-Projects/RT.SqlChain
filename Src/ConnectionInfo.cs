@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,8 +9,8 @@ using IQToolkit.Data.Common;
 using IQToolkit.Data.Mapping;
 using RT.SqlChain.Schema;
 using RT.Util;
-using RT.Util.Xml;
 using RT.Util.ExtensionMethods;
+using RT.Util.Xml;
 
 namespace RT.SqlChain
 {
@@ -191,6 +192,18 @@ namespace RT.SqlChain
     /// <summary>Describes an SqlChain connection to an SQLite database.</summary>
     public class SqliteConnectionInfo : ConnectionInfo
     {
+        // Ensure that any Sqlite connection used by SqlChain will use the invariant-culture ignore-case string comparison
+        static SqliteConnectionInfo() { SQLiteFunction.RegisterFunction(typeof(sqliteCollationRegistrator)); }
+
+        [SQLiteFunction(FuncType = FunctionType.Collation, Name = "INVARIANTCULTUREIGNORECASE")]
+        private class sqliteCollationRegistrator : SQLiteFunction
+        {
+            public override int Compare(string x, string y)
+            {
+                return string.Compare(x, y, StringComparison.InvariantCultureIgnoreCase);
+            }
+        }
+
         public string FileName { get; private set; }
 
         protected override string ProviderNamespace { get { return "IQToolkit.Data.SQLite"; } }

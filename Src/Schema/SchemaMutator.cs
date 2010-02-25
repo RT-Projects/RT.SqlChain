@@ -119,13 +119,6 @@ namespace RT.SqlChain.Schema
 
             ExecuteSql(sql.ToString());
         }
-
-        protected void CreateNormalIndex(IndexInfo index)
-        {
-            if (index.Kind != IndexKind.Normal)
-                throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
-            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString("[", "]", ", ")));
-        }
     }
 
     public class SqliteSchemaMutator : SchemaMutator
@@ -140,7 +133,7 @@ namespace RT.SqlChain.Schema
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
             {
-                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
+                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable + " COLLATE INVARIANTCULTUREIGNORECASE";
                 case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.Autoincrement: return "INTEGER" + nullable;
                 case BasicType.Long: return "INTEGER" + nullable;
@@ -158,7 +151,14 @@ namespace RT.SqlChain.Schema
             foreach (var table in schema.Tables)
                 CreateTable(table, true);
             foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
-                CreateNormalIndex(index);
+                createNormalIndex(index);
+        }
+
+        private void createNormalIndex(IndexInfo index)
+        {
+            if (index.Kind != IndexKind.Normal)
+                throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
+            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.Columns.Select(c => (c.Type.BasicType == BasicType.VarText ? "[{0}] COLLATE INVARIANTCULTUREIGNORECASE" : "[{0}]").Fmt(c.Name)).JoinString(", ")));
         }
     }
 
@@ -201,7 +201,14 @@ namespace RT.SqlChain.Schema
                         foreignKey.ReferencedColumnNames.JoinString(", ")
                     ));
             foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
-                CreateNormalIndex(index);
+                createNormalIndex(index);
+        }
+
+        private void createNormalIndex(IndexInfo index)
+        {
+            if (index.Kind != IndexKind.Normal)
+                throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
+            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString("[", "]", ", ")));
         }
     }
 }
