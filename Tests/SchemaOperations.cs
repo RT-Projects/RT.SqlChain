@@ -6,6 +6,7 @@ using NUnit.Framework;
 using RT.SqlChain;
 using RT.Util;
 using RT.Util.Xml;
+using System.Reflection;
 
 namespace RT.SqlChainTests
 {
@@ -18,7 +19,8 @@ namespace RT.SqlChainTests
             switch (kind)
             {
                 case DbmsKind.Sqlite:
-                    conninfo = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB-closetest.db3"));
+                    var dbFilename = "SqlChainTestDB-closetest.db3";
+                    conninfo = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
                     break;
                 case DbmsKind.SqlServer:
                     conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB_CLOSETEST");

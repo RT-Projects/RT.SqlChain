@@ -48,7 +48,8 @@ namespace RT.SqlChainTests
         {
             _log.Info("Init() ...");
 
-            _conninfoSqlite = new SqliteConnectionInfo(PathUtil.AppPathCombine("SqlChainTestDB.db3"));
+            var dbFilename = "SqlChainTestDB.db3";
+            _conninfoSqlite = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
             _conninfoSqlite.Log = Console.Out;
             _conninfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
             TestDB.CreateSchema(_conninfoSqlite);
@@ -67,7 +68,7 @@ namespace RT.SqlChainTests
             _log.Info("Cleanup() ...");
 
             _conninfoSqlite.DeleteSchema();
-             _conninfoSqlServer.DeleteSchema();
+            _conninfoSqlServer.DeleteSchema();
 
             _log.Info("Cleanup() complete");
         }
