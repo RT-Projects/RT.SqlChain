@@ -5,6 +5,8 @@ using RT.Util.ExtensionMethods;
 using RT.Util.Xml;
 using RT.Util;
 
+#pragma warning disable 1591
+
 namespace RT.SqlChain.Schema
 {
     public enum BasicType

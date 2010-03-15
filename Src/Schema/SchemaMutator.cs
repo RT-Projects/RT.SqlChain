@@ -6,6 +6,8 @@ using System.Text;
 using RT.Util;
 using RT.Util.ExtensionMethods;
 
+#pragma warning disable 1591
+
 namespace RT.SqlChain.Schema
 {
     public abstract class SchemaMutator

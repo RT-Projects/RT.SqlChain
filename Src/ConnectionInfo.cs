@@ -12,6 +12,8 @@ using RT.Util;
 using RT.Util.ExtensionMethods;
 using RT.Util.Xml;
 
+#pragma warning disable 1591
+
 namespace RT.SqlChain
 {
     /// <summary>

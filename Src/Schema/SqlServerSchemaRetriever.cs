@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using RT.Util.ExtensionMethods;
-using RT.SqlChain;
-using System.Data.Common;
-using RT.Util;
-using RT.Util.Collections;
+
+#pragma warning disable 1591
 
 namespace RT.SqlChain.Schema
 {

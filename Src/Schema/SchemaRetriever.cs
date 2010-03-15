@@ -5,6 +5,8 @@ using System.Data.Common;
 using System.Linq;
 using RT.Util.ExtensionMethods;
 
+#pragma warning disable 1591
+
 namespace RT.SqlChain.Schema
 {
     public abstract class SchemaRetriever
