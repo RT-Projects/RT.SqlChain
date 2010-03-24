@@ -57,7 +57,9 @@
     <Compile Include="Schema\SchemaMutator.cs" />
     <Compile Include="Schema\SchemaRetriever.cs">
     </Compile>
+    <Compile Include="Schema\SqliteSchemaMutator.cs" />
     <Compile Include="Schema\SqliteSchemaRetriever.cs" />
+    <Compile Include="Schema\SqlServerSchemaMutator.cs" />
     <Compile Include="Schema\SqlServerSchemaRetriever.cs" />
   </ItemGroup>
   <ItemGroup>
