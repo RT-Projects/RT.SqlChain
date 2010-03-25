@@ -47,7 +47,7 @@ namespace RT.SqlChainTests
         public TestDB(ConnectionInfo connInfo)
         {
             ConnectionInfo = connInfo;
-            dbProvider = connInfo.CreateEntityProvider(connInfo.CreateConnection(), typeof(Transaction));
+            dbProvider = connInfo.CreateEntityProvider(connInfo.CreateUnopenedConnection(), typeof(Transaction));
             Log = connInfo.Log;
             dbProvider.StartUsingConnection();
         }
@@ -89,7 +89,6 @@ namespace RT.SqlChainTests
             schema.XmlDeclassifyFixup();
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
-                conn.Open();
                 var mutator = connectionInfo.CreateSchemaMutator(conn, false);
                 mutator.CreateSchema(schema);
             }
@@ -107,7 +106,6 @@ namespace RT.SqlChainTests
             schema.XmlDeclassifyFixup();
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
-                conn.Open();
                 var mutator = connectionInfo.CreateSchemaMutator(conn, true);
                 using (var sql = new MemoryStream())
                 {

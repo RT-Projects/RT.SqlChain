@@ -29,7 +29,6 @@ namespace RT.SqlChainTests
             // Roundtrip test
             using (var dbconn = conninfo.CreateConnection())
             {
-                dbconn.Open();
                 var retr = conninfo.CreateSchemaRetriever(dbconn);
                 var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema());
                 var xmlExpected = XElement.Parse(TestDB.SchemaAsXml);
@@ -47,7 +46,7 @@ namespace RT.SqlChainTests
             Assert.IsFalse(conninfo.SchemaExists());
 
             // Double-check that opening a connection now fails
-            Assert.IsInstanceOf<DbException>(exceptionof(() => conninfo.CreateConnection().Open()));
+            Assert.IsInstanceOf<DbException>(exceptionof(() => conninfo.CreateConnection()));
         }
     }
 }

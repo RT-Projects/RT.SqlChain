@@ -49,7 +49,18 @@ namespace RT.SqlChain
         /// Creates a <see cref="DbConnection"/> as described by this class. The returned connection
         /// needs to be opened before use. This method will likely fail if the database does not exist.
         /// </summary>
-        public abstract DbConnection CreateConnection();
+        public abstract DbConnection CreateUnopenedConnection();
+
+        /// <summary>
+        /// Creates a <see cref="DbConnection"/> as described by this class.
+        /// This method will likely fail if the database does not exist.
+        /// </summary>
+        public DbConnection CreateConnection()
+        {
+            var conn = CreateUnopenedConnection();
+            conn.Open();
+            return conn;
+        }
 
         /// <summary>
         /// Creates a <see cref="DbConnection"/> as described by this class, for the purpose of creating
@@ -231,7 +242,7 @@ namespace RT.SqlChain
             return new SqliteSchemaMutator(conn, readOnly) { Log = Log };
         }
 
-        public override DbConnection CreateConnection()
+        public override DbConnection CreateUnopenedConnection()
         {
             var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
             conn.ConnectionString = new DbConnectionStringBuilder()
@@ -252,6 +263,7 @@ namespace RT.SqlChain
                     {"Version", "3"},
                     {"FailIfMissing", "False"},
                 }.ConnectionString;
+            conn.Open();
             return conn;
         }
 
@@ -316,7 +328,7 @@ namespace RT.SqlChain
             return new SqlServerSchemaMutator(conn, readOnly) { Log = Log };
         }
 
-        public override DbConnection CreateConnection()
+        public override DbConnection CreateUnopenedConnection()
         {
             var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
             conn.ConnectionString = new DbConnectionStringBuilder()
