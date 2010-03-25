@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using RT.Util.Collections;
 using RT.Util.ExtensionMethods;
 
 namespace RT.SqlChain.Schema
@@ -46,5 +47,83 @@ namespace RT.SqlChain.Schema
                 throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
             ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.Columns.Select(c => (c.Type.BasicType == BasicType.VarText ? "[{0}] COLLATE INVARIANTCULTUREIGNORECASE" : "[{0}]").Fmt(c.Name)).JoinString(", ")));
         }
+
+        protected override void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure)
+        {
+            var schema = table.Schema;
+
+            var newTableName = "_new_table";
+            var i = 1;
+            while (schema.Tables.Any(t => t.Name.EqualsNoCase(newTableName)))
+            {
+                i++;
+                newTableName = "_new_table_" + i;
+            }
+
+            ExecuteSql("BEGIN TRANSACTION");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("CREATE TABLE [{0}] (".Fmt(newTableName));
+            bool first = true;
+            IndexInfo newPrimaryKey = null;
+            if (table.PrimaryKey != null && table.PrimaryKey.ColumnNames.Count > 0)
+            {
+                newPrimaryKey = new IndexInfo
+                {
+                    ColumnNames = new List<string>(newStructure.Where(tup => tup.E1.IsPartOfPrimaryKey).Select(tup => tup.E1.Name)),
+                    Kind = IndexKind.PrimaryKey,
+                    Name = table.PrimaryKey.Name,
+                    Table = table
+                };
+            }
+            foreach (var struc in newStructure)
+            {
+                if (!first)
+                    sb.AppendLine(",");
+                sb.Append("    [{0}] {1}".Fmt(struc.E1.Name, TypeToSqlString(struc.E1.Type)));
+
+                // Add primary key if it is single-column
+                if (struc.E1.IsPartOfPrimaryKey && newPrimaryKey != null && newPrimaryKey.ColumnNames.Count == 1)
+                {
+                    sb.Append(" CONSTRAINT [{0}] PRIMARY KEY".Fmt(newPrimaryKey.Name));
+                    newPrimaryKey = null;
+                    if (struc.E1.Type.BasicType == BasicType.Autoincrement)
+                        sb.Append(" " + AutoincrementSuffix);
+                }
+                first = false;
+            }
+
+            // Add primary key if it is multi-column
+            if (newPrimaryKey != null)
+            {
+                sb.AppendLine(",");
+                sb.Append("  CONSTRAINT [{0}] PRIMARY KEY ({1})".Fmt(
+                    newPrimaryKey.Name,
+                    newPrimaryKey.ColumnNames.JoinString(", ")));
+            }
+
+            sb.AppendLine();
+            sb.Append(")");
+            ExecuteSql(sb.ToString());
+
+            sb = new StringBuilder();
+            sb.Append("INSERT INTO [{0}] (".Fmt(newTableName));
+            sb.Append(newStructure.Select(struc => "[{0}]".Fmt(struc.E1.Name)).JoinString(", "));
+            sb.AppendLine(")");
+            sb.Append("SELECT ");
+            sb.AppendLine(newStructure.Select(struc => struc.E2).JoinString(", "));
+            sb.Append("FROM [{0}] oldtable".Fmt(table.Name));
+            ExecuteSql(sb.ToString());
+
+            // SQLite allows us to drop the table even when foreign-key constraints are pointing to it.
+            ExecuteSql("DROP TABLE [{0}]".Fmt(table.Name));
+
+            // Renaming the new table to the old name makes all the foreign-key constraints point to it automatically.
+            ExecuteSql("ALTER TABLE {0} RENAME TO {1}".Fmt(newTableName, table.Name));
+
+            ExecuteSql("COMMIT TRANSACTION");
+        }
+
+        public override string SqlLength(string parameter) { return "length({0})".Fmt(parameter); }
     }
 }

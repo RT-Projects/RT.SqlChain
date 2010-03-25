@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
 using RT.Util;
+using RT.Util.Collections;
 using RT.Util.ExtensionMethods;
 
 #pragma warning disable 1591
@@ -65,6 +67,72 @@ namespace RT.SqlChain.Schema
 
         public abstract void CreateSchema(SchemaInfo schema);
 
+        public void TransformTable(TableInfo table, params TableTransform[] transforms)
+        {
+            if (transforms == null || transforms.Length == 0)
+                return;
+
+            var schema = table.Schema;
+            if (schema == null)
+                throw new InvalidOperationException("TransformTable can only operate on tables that belong to a schema.");
+
+            foreach (var transform in transforms)
+            {
+                if (transform is MoveColumn && ((MoveColumn) transform).Column.Table != table)
+                    throw new InvalidOperationException("TransformTable: The column specified in MoveColumn does not belong to the same table.");
+                if (transform is RenameColumn && ((RenameColumn) transform).Column.Table != table)
+                    throw new InvalidOperationException("TransformTable: The column specified in RenameColumn does not belong to the same table.");
+                if (transform is DeleteColumn && ((DeleteColumn) transform).Column.Table != table)
+                    throw new InvalidOperationException("TransformTable: The column specified in DeleteColumn does not belong to the same table.");
+            }
+
+            var newStructure = new List<Tuple<ColumnInfo, string>>(table.Columns.Select(col => Tuple.New(col, "oldtable.[{0}]".Fmt(col.Name))));
+
+            foreach (var transform in transforms)
+            {
+                AddColumn add;
+                MoveColumn move;
+                RenameColumn rename;
+                DeleteColumn delete;
+
+                if ((add = transform as AddColumn) != null)
+                {
+                    int index = Math.Min(newStructure.Count, Math.Max(0, add.InsertAtIndex));
+                    add.NewColumn.Table = table;
+                    newStructure.Insert(index, Tuple.New(add.NewColumn, add.Populate ?? "NULL"));
+                }
+                else if ((move = transform as MoveColumn) != null)
+                {
+                    if (!newStructure.Any(tup => tup.E1 == move.Column))
+                        throw new InvalidOperationException("TransformTable: The MoveColumn transformation refers to a column that doesn't exist or has been removed.");
+                    var tuple = newStructure.First(tup => tup.E1 == move.Column);
+                    newStructure.RemoveAt(newStructure.IndexOf(tup => tup.E1 == move.Column));
+                    newStructure.Insert(Math.Min(newStructure.Count, Math.Max(0, move.NewIndex)), tuple);
+                }
+                else if ((rename = transform as RenameColumn) != null)
+                {
+                    if (!newStructure.Any(tup => tup.E1 == rename.Column))
+                        throw new InvalidOperationException("TransformTable: The RenameColumn transformation refers to a column that doesn't exist or has been removed.");
+                    var tuple = newStructure.First(tup => tup.E1 == rename.Column);
+                    var index = newStructure.IndexOf(tup => tup.E1 == rename.Column);
+                    newStructure[index] = Tuple.New(new ColumnInfo { Name = rename.NewName, Type = rename.Column.Type, Table = table }, tuple.E2);
+                }
+                else if ((delete = transform as DeleteColumn) != null)
+                {
+                    var index = newStructure.IndexOf(tup => tup.E1 == delete.Column);
+                    newStructure.RemoveAt(index);
+                }
+            }
+
+            foreach (var pair in newStructure.UniquePairs())
+                if (pair.E1.E1.Name == pair.E2.E1.Name)
+                    throw new InvalidOperationException(@"TransformTable: After applying the transformations, the table would have two columns named ""{0}"". Column names must be unique.".Fmt(pair.E1.E1.Name));
+
+            transformTable(table, newStructure);
+        }
+
+        protected abstract void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure);
+
         protected void CreateTable(TableInfo table, bool includeForeignKeys)
         {
             bool first;
@@ -121,5 +189,7 @@ namespace RT.SqlChain.Schema
 
             ExecuteSql(sql.ToString());
         }
+
+        public abstract string SqlLength(string parameter);
     }
 }

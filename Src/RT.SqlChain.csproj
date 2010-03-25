@@ -61,6 +61,7 @@
     <Compile Include="Schema\SqliteSchemaRetriever.cs" />
     <Compile Include="Schema\SqlServerSchemaMutator.cs" />
     <Compile Include="Schema\SqlServerSchemaRetriever.cs" />
+    <Compile Include="Schema\TableTransform.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\IQToolkit\Src\Sources\IQToolkit.Data\IQToolkit.Data.csproj">
