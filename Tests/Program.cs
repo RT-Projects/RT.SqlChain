@@ -14,63 +14,38 @@ namespace RT.SqlChainTests
     {
         private LoggerBase _log = new ConsoleLogger();
 
-        private SqliteConnectionInfo _conninfoSqlite;
-        private SqlServerConnectionInfo _conninfoSqlServer;
-
-        private ConnectionInfo getConnInfo(DbmsKind kind)
+        private ConnectionInfo getConnInfo(DbmsKind kind, string suffix)
         {
             switch (kind)
             {
-                case DbmsKind.Sqlite: return _conninfoSqlite;
-                case DbmsKind.SqlServer: return _conninfoSqlServer;
+                case DbmsKind.Sqlite:
+                    var dbFilename = "SqlChainTestDB" + suffix + ".db3";
+                    var connInfoSqlite = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
+                    connInfoSqlite.Log = Console.Out;
+                    connInfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+                    return connInfoSqlite;
+
+                case DbmsKind.SqlServer:
+                    var connInfoSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB" + suffix);
+                    connInfoSqlServer.Log = Console.Out;
+                    connInfoSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+                    return connInfoSqlServer;
+
                 default: throw new InternalError("hoffsho");
             }
         }
 
-        private TestDB createConn(DbmsKind kind)
+        private TestDB createConnAndSchema(DbmsKind kind)
         {
-            switch (kind)
-            {
-                case DbmsKind.Sqlite: return new TestDB(_conninfoSqlite);
-                case DbmsKind.SqlServer: return new TestDB(_conninfoSqlServer);
-                default: throw new InternalError("fhsohsk");
-            }
+            var connInfo = getConnInfo(kind, null);
+            TestDB.CreateSchema(connInfo);
+            return new TestDB(connInfo);
         }
 
         private Exception exceptionof(Action action)
         {
             try { action(); return null; }
             catch (Exception e) { return e; }
-        }
-
-        [TestFixtureSetUp]
-        public void Init()
-        {
-            _log.Info("Init() ...");
-
-            var dbFilename = "SqlChainTestDB.db3";
-            _conninfoSqlite = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
-            _conninfoSqlite.Log = Console.Out;
-            _conninfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
-            TestDB.CreateSchema(_conninfoSqlite);
-
-            _conninfoSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
-            _conninfoSqlServer.Log = Console.Out;
-            _conninfoSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
-            TestDB.CreateSchema(_conninfoSqlServer);
-
-            _log.Info("Init() complete");
-        }
-
-        [TestFixtureTearDown]
-        public void Cleanup()
-        {
-            _log.Info("Cleanup() ...");
-
-            _conninfoSqlite.DeleteSchema();
-            _conninfoSqlServer.DeleteSchema();
-
-            _log.Info("Cleanup() complete");
         }
     }
 

@@ -15,17 +15,7 @@ namespace RT.SqlChainTests
         [Test]
         public void TestSchemaOperations([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            ConnectionInfo conninfo = null;
-            switch (kind)
-            {
-                case DbmsKind.Sqlite:
-                    var dbFilename = "SqlChainTestDB-closetest.db3";
-                    conninfo = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
-                    break;
-                case DbmsKind.SqlServer:
-                    conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB_CLOSETEST");
-                    break;
-            }
+            ConnectionInfo conninfo = getConnInfo(kind, "closetest");
             conninfo.Log = Console.Out;
 
             // Test 1

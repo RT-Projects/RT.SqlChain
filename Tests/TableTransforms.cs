@@ -16,20 +16,9 @@ namespace RT.SqlChainTests
         [Test]
         public void TestTableTransforms([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            ConnectionInfo conninfo = null;
-            switch (kind)
-            {
-                case DbmsKind.Sqlite:
-                    var dbFilename = "SqlChainTestDB.db3";
-                    conninfo = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
-                    break;
-                case DbmsKind.SqlServer:
-                    conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
-                    break;
-            }
+            ConnectionInfo conninfo = getConnInfo(kind, null);
             conninfo.Log = Console.Out;
 
-            TestDB.DeleteSchema(conninfo);
             TestDB.CreateSchema(conninfo);
             Assert.IsTrue(conninfo.SchemaExists());
 
