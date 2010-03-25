@@ -24,25 +24,26 @@ namespace RT.SqlChainTests
 
             var bytesFrom0To100 = Enumerable.Range(0, 100).Select(b => (byte) b).ToArray();
 
-            new TestDB(conninfo).ExecuteInTransaction(tr =>
-            {
-                tr.AllTypesNotNulls.Insert(new TestDB.AllTypesNotNull
+            using (var testdb = new TestDB(conninfo))
+                testdb.ExecuteInTransaction(tr =>
                 {
-                    ColBoolean = true,
-                    ColByte = 1,
-                    ColDateTime = DateTime.Parse("2000-01-01 01:47"),
-                    ColDouble = 4.7d,
-                    ColInt = 47,
-                    ColLong = 42,
-                    ColShort = 2,
-                    ColVarBinary1 = new byte[] { 3 },
-                    ColVarBinary100 = bytesFrom0To100,
-                    ColVarBinaryMax = new byte[] { 5, 55 },
-                    ColVarText1 = "a",
-                    ColVarText100 = "The quick brown fox jumps over the lazy dog.",
-                    ColVarTextMax = "Jackdaws love my big sphinx of quartz."
+                    tr.AllTypesNotNulls.Insert(new TestDB.AllTypesNotNull
+                    {
+                        ColBoolean = true,
+                        ColByte = 1,
+                        ColDateTime = DateTime.Parse("2000-01-01 01:47"),
+                        ColDouble = 4.7d,
+                        ColInt = 47,
+                        ColLong = 42,
+                        ColShort = 2,
+                        ColVarBinary1 = new byte[] { 3 },
+                        ColVarBinary100 = bytesFrom0To100,
+                        ColVarBinaryMax = new byte[] { 5, 55 },
+                        ColVarText1 = "a",
+                        ColVarText100 = "The quick brown fox jumps over the lazy dog.",
+                        ColVarTextMax = "Jackdaws love my big sphinx of quartz."
+                    });
                 });
-            });
 
             using (var conn = conninfo.CreateConnection())
             {
@@ -117,32 +118,34 @@ namespace RT.SqlChainTests
                 for (int i = 0; i < 19; i++)
                     Assert.IsFalse(cols[i].Type.Nullable);
 
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM AllTypesNotNull";
-                using (var reader = cmd.ExecuteReader())
+                using (var cmd = conn.CreateCommand())
                 {
-                    Assert.IsTrue(reader.Read());
+                    cmd.CommandText = "SELECT * FROM AllTypesNotNull";
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
 
-                    Assert.AreEqual(2, reader.GetValue(0));
-                    // skip ColAutoIncrement
-                    Assert.AreEqual("a", reader.GetValue(2));
-                    Assert.AreEqual("a".Length, reader.GetValue(3));
-                    Assert.AreEqual("The quick brown fox jumps over the lazy dog.", reader.GetValue(4));
-                    Assert.AreEqual("The quick brown fox jumps over the lazy dog.".Length, reader.GetValue(5));
-                    Assert.AreEqual("Jackdaws love my big sphinx of quartz.", reader.GetValue(6));
-                    Assert.AreEqual("Jackdaws love my big sphinx of quartz.".Length, reader.GetValue(7));
-                    Assert.AreEqual(new byte[] { 3 }, reader.GetValue(8));
-                    Assert.AreEqual(1, reader.GetValue(9));
-                    Assert.AreEqual(bytesFrom0To100, reader.GetValue(10));
-                    Assert.AreEqual(100, reader.GetValue(11));
-                    Assert.AreEqual(new byte[] { 5, 55 }, reader.GetValue(12));
-                    Assert.AreEqual(2, reader.GetValue(13));
-                    Assert.AreEqual(1, reader.GetValue(14));
-                    Assert.AreEqual(47, reader.GetValue(15));
-                    Assert.AreEqual(42, reader.GetValue(16));
-                    Assert.AreEqual(DateTime.Parse("2000-01-01 01:47"), reader.GetValue(17));
-                    Assert.AreEqual(true, reader.GetValue(18));
-                    reader.Close();
+                        Assert.AreEqual(2, reader.GetValue(0));
+                        // skip ColAutoIncrement
+                        Assert.AreEqual("a", reader.GetValue(2));
+                        Assert.AreEqual("a".Length, reader.GetValue(3));
+                        Assert.AreEqual("The quick brown fox jumps over the lazy dog.", reader.GetValue(4));
+                        Assert.AreEqual("The quick brown fox jumps over the lazy dog.".Length, reader.GetValue(5));
+                        Assert.AreEqual("Jackdaws love my big sphinx of quartz.", reader.GetValue(6));
+                        Assert.AreEqual("Jackdaws love my big sphinx of quartz.".Length, reader.GetValue(7));
+                        Assert.AreEqual(new byte[] { 3 }, reader.GetValue(8));
+                        Assert.AreEqual(1, reader.GetValue(9));
+                        Assert.AreEqual(bytesFrom0To100, reader.GetValue(10));
+                        Assert.AreEqual(100, reader.GetValue(11));
+                        Assert.AreEqual(new byte[] { 5, 55 }, reader.GetValue(12));
+                        Assert.AreEqual(2, reader.GetValue(13));
+                        Assert.AreEqual(1, reader.GetValue(14));
+                        Assert.AreEqual(47, reader.GetValue(15));
+                        Assert.AreEqual(42, reader.GetValue(16));
+                        Assert.AreEqual(DateTime.Parse("2000-01-01 01:47"), reader.GetValue(17));
+                        Assert.AreEqual(true, reader.GetValue(18));
+                        reader.Close();
+                    }
                 }
             }
         }
