@@ -20,15 +20,16 @@ namespace RT.SqlChainTests
             switch (kind)
             {
                 case DbmsKind.Sqlite:
-                    var dbFilename = "SqlChainTestDB-closetest.db3";
+                    var dbFilename = "SqlChainTestDB.db3";
                     conninfo = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
                     break;
                 case DbmsKind.SqlServer:
-                    conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB_CLOSETEST");
+                    conninfo = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB");
                     break;
             }
             conninfo.Log = Console.Out;
 
+            TestDB.DeleteSchema(conninfo);
             TestDB.CreateSchema(conninfo);
             Assert.IsTrue(conninfo.SchemaExists());
 

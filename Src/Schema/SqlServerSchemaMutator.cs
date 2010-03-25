@@ -87,11 +87,15 @@ namespace RT.SqlChain.Schema
                 if (!first)
                     sb.AppendLine(",");
                 sb.Append("    [{0}] {1}".Fmt(struc.E1.Name, TypeToSqlString(struc.E1.Type)));
+                if (struc.E1.Type.BasicType == BasicType.Autoincrement)
+                    sb.Append(" " + AutoincrementSuffix);
                 first = false;
             }
             sb.AppendLine();
             sb.AppendLine(")");
             ExecuteSql(sb.ToString());
+
+            ExecuteSql("SET IDENTITY_INSERT [{0}] ON".Fmt(newTableName));
 
             sb = new StringBuilder();
             sb.Append("INSERT INTO [{0}] (".Fmt(newTableName));
@@ -101,6 +105,8 @@ namespace RT.SqlChain.Schema
             sb.AppendLine(newStructure.Select(struc => struc.E2).JoinString(", "));
             sb.AppendLine("FROM [{0}] oldtable".Fmt(table.Name));
             ExecuteSql(sb.ToString());
+
+            ExecuteSql("SET IDENTITY_INSERT [{0}] OFF".Fmt(newTableName));
 
             ExecuteSql("DROP TABLE [{0}]".Fmt(table.Name));
 
