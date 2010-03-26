@@ -133,7 +133,13 @@ namespace RT.SqlChain.Schema
 
         protected abstract void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure);
 
-        protected void CreateTable(TableInfo table, bool includeForeignKeys)
+        public abstract void CreateTable(TableInfo table);
+
+        public abstract void RenameTable(TableInfo table, string newName);
+
+        public abstract void DeleteTable(TableInfo table);
+
+        protected void CreateTableInternal(TableInfo table, bool includeForeignKeys)
         {
             bool first;
             var sql = new StringBuilder();

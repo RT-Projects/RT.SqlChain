@@ -37,10 +37,10 @@ namespace RT.SqlChain.Schema
 
         public override void CreateSchema(SchemaInfo schema)
         {
+            ExecuteSql("BEGIN TRANSACTION");
             foreach (var table in schema.Tables)
-                CreateTable(table, true);
-            foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
-                createNormalIndex(index);
+                createTable(table, false);
+            ExecuteSql("COMMIT TRANSACTION");
         }
 
         private void createNormalIndex(IndexInfo index)
@@ -104,6 +104,17 @@ namespace RT.SqlChain.Schema
                     newPrimaryKey.ColumnNames.JoinString(", ")));
             }
 
+            // Add all the foreign-key constraints from the old table
+            foreach (var foreignKey in table.ForeignKeys)
+            {
+                sb.AppendLine(",");
+                sb.Append("    CONSTRAINT [{0}] FOREIGN KEY ({1}) REFERENCES [{2}] ({3})".Fmt(
+                    foreignKey.Name,
+                    foreignKey.ColumnNames.JoinString(", "),
+                    foreignKey.ReferencedTableName,
+                    foreignKey.ReferencedColumnNames.JoinString(", ")));
+            }
+
             sb.AppendLine();
             sb.Append(")");
             ExecuteSql(sb.ToString());
@@ -121,11 +132,37 @@ namespace RT.SqlChain.Schema
             ExecuteSql("DROP TABLE [{0}]".Fmt(table.Name));
 
             // Renaming the new table to the old name makes all the foreign-key constraints point to it automatically.
-            ExecuteSql("ALTER TABLE {0} RENAME TO {1}".Fmt(newTableName, table.Name));
+            ExecuteSql("ALTER TABLE [{0}] RENAME TO [{1}]".Fmt(newTableName, table.Name));
 
             ExecuteSql("COMMIT TRANSACTION");
         }
 
         public override string SqlLength(string parameter) { return "length({0})".Fmt(parameter); }
+
+        public override void CreateTable(TableInfo table)
+        {
+            createTable(table, true);
+        }
+
+        private void createTable(TableInfo table, bool useTransaction)
+        {
+            if (useTransaction)
+                ExecuteSql("BEGIN TRANSACTION");
+            CreateTableInternal(table, true);
+            foreach (var index in table.Indexes.Where(i => i.Kind == IndexKind.Normal))
+                createNormalIndex(index);
+            if (useTransaction)
+                ExecuteSql("COMMIT TRANSACTION");
+        }
+
+        public override void RenameTable(TableInfo table, string newName)
+        {
+            ExecuteSql("ALTER TABLE [{0}] RENAME TO [{1}]".Fmt(table.Name, newName));
+        }
+
+        public override void DeleteTable(TableInfo table)
+        {
+            ExecuteSql("DROP TABLE [{0}]".Fmt(table.Name));
+        }
     }
 }

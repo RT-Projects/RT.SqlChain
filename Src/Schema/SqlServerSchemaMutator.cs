@@ -37,19 +37,32 @@ namespace RT.SqlChain.Schema
 
         public override void CreateSchema(SchemaInfo schema)
         {
+            ExecuteSql("BEGIN TRANSACTION");
+
+            // We have to create all the tables without the foreign-key constraints first
             foreach (var table in schema.Tables)
-                CreateTable(table, false);
+                CreateTableInternal(table, false);
+
+            // Now that all the tables exist, we create all the foreign-key constraints
             foreach (var table in schema.Tables)
                 foreach (var foreignKey in table.ForeignKeys)
-                    ExecuteSql(@"ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}] ({4})".Fmt(
-                        table.Name,
-                        foreignKey.Name,
-                        foreignKey.ColumnNames.JoinString(", "),
-                        foreignKey.ReferencedTableName,
-                        foreignKey.ReferencedColumnNames.JoinString(", ")
-                    ));
+                    createForeignKeyConstraint(foreignKey);
+
             foreach (var index in schema.Indexes.Where(i => i.Kind == IndexKind.Normal))
                 createNormalIndex(index);
+
+            ExecuteSql("COMMIT TRANSACTION");
+        }
+
+        private void createForeignKeyConstraint(ForeignKeyInfo foreignKey)
+        {
+            ExecuteSql(@"ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}] ({4})".Fmt(
+                foreignKey.Table.Name,
+                foreignKey.Name,
+                foreignKey.ColumnNames.JoinString(", "),
+                foreignKey.ReferencedTableName,
+                foreignKey.ReferencedColumnNames.JoinString(", ")
+            ));
         }
 
         private void createNormalIndex(IndexInfo index)
@@ -145,5 +158,26 @@ namespace RT.SqlChain.Schema
         }
 
         public override string SqlLength(string parameter) { return "len({0})".Fmt(parameter); }
+
+        public override void CreateTable(TableInfo table)
+        {
+            ExecuteSql("BEGIN TRANSACTION");
+            CreateTableInternal(table, false);
+            foreach (var foreignKey in table.ForeignKeys)
+                createForeignKeyConstraint(foreignKey);
+            foreach (var index in table.Indexes.Where(i => i.Kind == IndexKind.Normal))
+                createNormalIndex(index);
+            ExecuteSql("COMMIT TRANSACTION");
+        }
+
+        public override void RenameTable(TableInfo table, string newName)
+        {
+            ExecuteSql("sp_rename @objname='{0}', @newname='{1}', @objtype='OBJECT'".Fmt(table.Name, newName));
+        }
+
+        public override void DeleteTable(TableInfo table)
+        {
+            ExecuteSql("DROP TABLE [{0}]".Fmt(table.Name));
+        }
     }
 }
