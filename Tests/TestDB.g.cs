@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using IQToolkit;
 using IQToolkit.Data;
@@ -28,6 +29,8 @@ namespace RT.SqlChainTests
     /// </remarks>
     sealed partial class TestDB : IDisposable
     {
+        private int _creatingThreadId;
+
         /// <summary>
         /// Holds the underlying IQToolkit database connection. This is private to ensure that it is only possible to
         /// alter the database through a supported <see cref="Transaction"/> object.
@@ -46,6 +49,7 @@ namespace RT.SqlChainTests
         /// </summary>
         public TestDB(ConnectionInfo connInfo)
         {
+            _creatingThreadId = Thread.CurrentThread.ManagedThreadId;
             ConnectionInfo = connInfo;
             dbProvider = connInfo.CreateEntityProvider(connInfo.CreateUnopenedConnection(), typeof(Transaction));
             Log = connInfo.Log;
@@ -58,6 +62,7 @@ namespace RT.SqlChainTests
         /// </summary>
         public void Dispose()
         {
+            checkThread(); // nobody should call Dispose on another thread; the GC never calls this either.
             if (dbProvider != null)
             {
                 dbProvider.StopUsingConnection();
@@ -73,6 +78,8 @@ namespace RT.SqlChainTests
         /// </summary>
         public TextWriter Log
         {
+            // no checkThread here: this is for debugging purposes only and it might be useful to set this from another thread
+            // even if that might cause an occasional threading bug
             get { return dbProvider.Log; }
             set { dbProvider.Log = value; }
         }
@@ -84,7 +91,7 @@ namespace RT.SqlChainTests
         /// </summary>
         public static void CreateSchema(ConnectionInfo connectionInfo)
         {
-            var xml = XElement.Parse(_schemaAsXml);
+            var xml = XElement.Parse(SchemaAsXml);
             var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
             schema.XmlDeclassifyFixup();
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
@@ -101,7 +108,7 @@ namespace RT.SqlChainTests
         /// </summary>
         public static string CreateSchemaSqlOnly(ConnectionInfo connectionInfo)
         {
-            var xml = XElement.Parse(_schemaAsXml);
+            var xml = XElement.Parse(SchemaAsXml);
             var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
             schema.XmlDeclassifyFixup();
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
@@ -291,6 +298,16 @@ namespace RT.SqlChainTests
         #endregion
 
         /// <summary>
+        /// Verifies that the current thread is the same as the thread that created this instance. Throws an
+        /// exception if this condition is not met.
+        /// </summary>
+        private void checkThread()
+        {
+            if (Thread.CurrentThread.ManagedThreadId != _creatingThreadId)
+                throw new InvalidOperationException("Detected member access from a thread different than the creating thread. The TestDB class is not thread-safe and such use is not permitted.");
+        }
+
+        /// <summary>
         /// Executes the specified code using a new database transaction. There is no way to make changes
         /// to the database other than through a method like this one. See Remarks for more info.
         /// </summary>
@@ -302,24 +319,8 @@ namespace RT.SqlChainTests
         /// </remarks>
         public void ExecuteInTransaction(Action<Transaction> action)
         {
-            if (dbProvider.Transaction != null)
-                throw new InvalidOperationException("Another transaction is already active; cannot have more than one active transaction on the same connection.");
-            // NOTE: if you make any changes, replicate them in the other ExecuteInTransaction below!
-            using (dbProvider.Transaction = dbProvider.Connection.BeginTransaction())
-                try
-                {
-                    action(new Transaction(dbProvider));
-                    dbProvider.Transaction.Commit();
-                    dbProvider.Transaction = null;
-                }
-                finally
-                {
-                    if (dbProvider.Transaction != null)
-                    {
-                        dbProvider.Transaction.Rollback();
-                        dbProvider.Transaction = null;
-                    }
-                }
+            checkThread();
+            executeInTransaction<bool>(action);
         }
 
         /// <summary>
@@ -334,25 +335,61 @@ namespace RT.SqlChainTests
         /// </remarks>
         public TResult ExecuteInTransaction<TResult>(Func<Transaction, TResult> func)
         {
-            if (dbProvider.Transaction != null)
-                throw new InvalidOperationException("Another transaction is already active; cannot have more than one active transaction on the same connection.");
-            // NOTE: if you make any changes, replicate them in the other ExecuteInTransaction above!
-            using (dbProvider.Transaction = dbProvider.Connection.BeginTransaction())
-                try
+            checkThread();
+            return executeInTransaction<TResult>(func);
+        }
+
+        private Transaction _currentTransaction;
+        private int _nestedTransactions = 0;
+
+        private TResult executeInTransaction<TResult>(Delegate method)
+        {
+            _nestedTransactions++;
+            if (_nestedTransactions == 1)
+            {
+                dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
+                _currentTransaction = new Transaction(dbProvider);
+            }
+
+            bool success = false;
+            try
+            {
+                TResult result;
+                var action = method as Action<Transaction>;
+                if (action != null)
                 {
-                    var result = func(new Transaction(dbProvider));
-                    dbProvider.Transaction.Commit();
-                    dbProvider.Transaction = null;
-                    return result;
+                    action(_currentTransaction);
+                    result = default(TResult);
                 }
-                finally
+                else
                 {
-                    if (dbProvider.Transaction != null)
+                    var func = method as Func<Transaction, TResult>;
+                    result = func(_currentTransaction);
+                }
+
+                success = true;
+                return result;
+            }
+            finally
+            {
+                _nestedTransactions--;
+                if (_nestedTransactions == 0)
+                {
+                    try
                     {
-                        dbProvider.Transaction.Rollback();
+                        if (success)
+                            dbProvider.Transaction.Commit(); // can throw deferred constraint violations
+                        else
+                            dbProvider.Transaction.Rollback(); // can probably also throw - disk failure, connection timeout, etc
+                    }
+                    finally
+                    {
+                        dbProvider.Transaction.Dispose();
                         dbProvider.Transaction = null;
+                        _currentTransaction = null;
                     }
                 }
+            }
         }
 
         /// <summary>
@@ -443,9 +480,7 @@ namespace RT.SqlChainTests
         /// Gets the schema of this database connection as an XML string with no XML declaration
         /// (parseable by <see cref="XElement"/> but not <see cref="XDocument"/>).
         /// </summary>
-        public static string SchemaAsXml { get { return _schemaAsXml; } }
-
-        private static string _schemaAsXml = @"
+        public const string SchemaAsXml = @"
 <item>
   <tables>
     <item>

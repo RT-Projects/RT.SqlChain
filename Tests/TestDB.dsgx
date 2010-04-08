@@ -2,13 +2,13 @@
 <item>
   <DefaultRetriever>xml</DefaultRetriever>
   <DefaultGenerators>
-    <item>sqlchain</item>
+    <item>code</item>
   </DefaultGenerators>
   <Retrievers>
     <item type="XmlSchemaRetrieverParams" key="xml">
       <XmlFileName>./TestDB.schema.xml</XmlFileName>
     </item>
-    <item type="SqliteRetrieverParams" key="sqlite">
+    <item type="SqliteRetrieverParams" key="db">
       <ConnectionString>Data Source=./TestDB.db3;Version=3;FailIfMissing=true;</ConnectionString>
     </item>
   </Retrievers>
@@ -17,11 +17,12 @@
       <ExcludeTables/>
       <OutputFile>./TestDB.schema.xml</OutputFile>
     </item>
-    <item type="SqlChainGenerator" key="sqlchain">
+    <item type="SqlChainGenerator" key="code">
       <ExcludeTables/>
       <Namespace>RT.SqlChainTests</Namespace>
       <ClassName>TestDB</ClassName>
       <OutputFile_Db>./TestDB.g.cs</OutputFile_Db>
+      <TemplateFileLocation>..\..\DbSourceGen\TmplSqlChain\Tmpl_Database.cs</TemplateFileLocation>
     </item>
   </Generators>
 </item>
