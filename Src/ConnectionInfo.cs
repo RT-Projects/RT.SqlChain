@@ -91,6 +91,14 @@ namespace RT.SqlChain
                 new object[] { connection, new AttributeMapping(mappingType), QueryPolicy.Default });
         }
 
+        /// <summary>
+        /// Enables provider-specific set-up to be performed on an open connection. The standard SqlChain
+        /// template invokes this method whenever it creates connections.
+        /// </summary>
+        public virtual void PrepareConnectionForFurtherUse(DbConnection connection)
+        {
+        }
+
         #region ProviderType, QueryLanguageType and AdoConnectionType
 
         [XmlIgnore]
@@ -280,6 +288,25 @@ namespace RT.SqlChain
             {
                 Log.WriteLine("Schema deleted.");
                 Log.WriteLine();
+            }
+        }
+
+        public override void PrepareConnectionForFurtherUse(DbConnection connection)
+        {
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA foreign_keys = ON";
+                cmd.ExecuteNonQuery();
+            }
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA foreign_keys";
+                var result = cmd.ExecuteScalar();
+                long longresult;
+                try { longresult = Convert.ToInt64(result); }
+                catch { longresult = 0; }
+                if (longresult != 1)
+                    throw new NotSupportedException("Failed to enable foreign key support in SQLite.");
             }
         }
 

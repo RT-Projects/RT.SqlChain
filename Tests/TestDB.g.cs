@@ -54,6 +54,7 @@ namespace RT.SqlChainTests
             dbProvider = connInfo.CreateEntityProvider(connInfo.CreateUnopenedConnection(), typeof(Transaction));
             Log = connInfo.Log;
             dbProvider.StartUsingConnection();
+            connInfo.PrepareConnectionForFurtherUse(dbProvider.Connection);
         }
 
         /// <summary>
