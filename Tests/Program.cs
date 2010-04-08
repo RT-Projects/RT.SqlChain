@@ -45,6 +45,7 @@ namespace RT.SqlChainTests
         private Exception exceptionof(Action action)
         {
             try { action(); return null; }
+            catch (AssertionException) { throw; }
             catch (Exception e) { return e; }
         }
     }
