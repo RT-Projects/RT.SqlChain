@@ -37,9 +37,9 @@ namespace RT.SqlChainTests
 
             // Do something to exercise IQToolkit's use of this connection
             using (var conn = new TestDB(conninfo))
-                conn.ExecuteInTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
+                conn.InTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
             using (var conn = new TestDB(conninfo))
-                conn.ExecuteInTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
+                conn.InTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
 
             // Try to delete - this only succeeds if all connections were closed properly
             conninfo.DeleteSchema();

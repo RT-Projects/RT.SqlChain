@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
@@ -20,12 +21,17 @@ namespace RT.SqlChainTests
     /// Remarks for general suggestions on using this class.
     /// </summary>
     /// <remarks>
-    /// <para>General database utility methods should accept a <see cref="TestDB.Transaction"/>
-    /// object, and make changes through that. On failure such methods should throw an exception; on success just leave normally.</para>
-    /// <para>Other methods that require database access should call <see cref="ExecuteInTransaction"/> and process any exceptions as
-    /// appropriate for the situation. An exception always means that the transaction did not commit.</para>
-    /// <para>A method that catches exceptions thrown by another method taking a <see cref="TestDB.Transaction"/>
-    /// object should, as a general rule, rethrow the caught or a new exception, as otherwise the transaction would commit.</para>
+    /// <para>General database utility methods wishing to make changes to the database should accept a 
+    /// <see cref="TestDB.WritableTransaction"/> object and make changes through that.
+    /// On failure such methods should throw an exception; on success just leave normally.</para>
+    /// <para>Read-only database utility methods should accept a <see cref="TestDB.ReadOnlyTransaction"/>
+    /// object and access the database through that. Such a read-only transaction cannot make any changes,
+    /// but even if it does, those are rolled back.</para>
+    /// <para>Other methods that require database access should call <see cref="InTransaction"/> or
+    /// <see cref="InReadOnlyTransaction"/> and process any exceptions as appropriate for the situation.
+    /// An exception always means that the transaction did not commit.</para>
+    /// <para>A method that catches exceptions thrown by another method taking a transaction object should,
+    /// as a general rule, rethrow the caught or a new exception, as otherwise the transaction would commit.</para>
     /// </remarks>
     sealed partial class TestDB : IDisposable
     {
@@ -33,7 +39,7 @@ namespace RT.SqlChainTests
 
         /// <summary>
         /// Holds the underlying IQToolkit database connection. This is private to ensure that it is only possible to
-        /// alter the database through a supported <see cref="Transaction"/> object.
+        /// alter the database through a supported <see cref="DB.WritableTransaction"/> object.
         /// </summary>
         private DbEntityProvider dbProvider { get; set; }
 
@@ -51,7 +57,7 @@ namespace RT.SqlChainTests
         {
             _creatingThreadId = Thread.CurrentThread.ManagedThreadId;
             ConnectionInfo = connInfo;
-            dbProvider = connInfo.CreateEntityProvider(connInfo.CreateUnopenedConnection(), typeof(Transaction));
+            dbProvider = connInfo.CreateEntityProvider(connInfo.CreateUnopenedConnection(), typeof(WritableTransaction));
             Log = connInfo.Log;
             dbProvider.StartUsingConnection();
             connInfo.PrepareConnectionForFurtherUse(dbProvider.Connection);
@@ -309,111 +315,193 @@ namespace RT.SqlChainTests
         }
 
         /// <summary>
-        /// Executes the specified code using a new database transaction. There is no way to make changes
-        /// to the database other than through a method like this one. See Remarks for more info.
+        /// Executes the specified code using a new database transaction. See Remarks for more info.
         /// </summary>
         /// <remarks>
         /// <para>See Remarks on the connection class (<see cref="TestDB"/>) for general suggestions.</para>
         /// <para>To commit the transaction, let <paramref name="action"/> return normally.</para>
         /// <para>To rollback the transaction, let <paramref name="action"/> throw an exception. This exception will
-        /// NOT be caught by <see cref="ExecuteInTransaction"/>, so make sure you handle any exceptions escaping this call as appropriate.</para>
+        /// NOT be caught by <see cref="InTransaction"/>, so make sure you handle any exceptions escaping this call as appropriate.</para>
         /// </remarks>
-        public void ExecuteInTransaction(Action<Transaction> action)
+        public void InTransaction(Action<WritableTransaction> action)
         {
-            checkThread();
-            executeInTransaction<bool>(action);
+            inTransaction<bool>(action, false);
         }
 
         /// <summary>
-        /// Executes the specified code using a new database transaction. There is no way to make changes
-        /// to the database other than through a method like this one. See Remarks for more info.
+        /// Executes the specified code using a new database transaction. See Remarks for more info.
         /// </summary>
         /// <remarks>
         /// <para>See Remarks on the connection class (<see cref="TestDB"/>) for general suggestions.</para>
         /// <para>To commit the transaction, let <paramref name="action"/> return normally.</para>
         /// <para>To rollback the transaction, let <paramref name="action"/> throw an exception. This exception will
-        /// NOT be caught by <see cref="ExecuteInTransaction"/>, so make sure you handle any exceptions escaping this call as appropriate.</para>
+        /// NOT be caught by <see cref="InTransaction"/>, so make sure you handle any exceptions escaping this call as appropriate.</para>
         /// </remarks>
-        public TResult ExecuteInTransaction<TResult>(Func<Transaction, TResult> func)
+        public TResult InTransaction<TResult>(Func<WritableTransaction, TResult> func)
         {
-            checkThread();
-            return executeInTransaction<TResult>(func);
+            return inTransaction<TResult>(func, false);
         }
 
-        private Transaction _currentTransaction;
-        private int _nestedTransactions = 0;
-
-        private TResult executeInTransaction<TResult>(Delegate method)
+        /// <summary>
+        /// Executes the specified code using a new database transaction. See Remarks for more info.
+        /// </summary>
+        /// <remarks>
+        /// <para>See Remarks on the connection class (<see cref="TestDB"/>) for general suggestions.</para>
+        /// <para>The transaction is always rolled back.</para>
+        /// </remarks>
+        public void InReadOnlyTransaction(Action<ReadOnlyTransaction> action)
         {
-            _nestedTransactions++;
-            if (_nestedTransactions == 1)
-            {
-                dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
-                _currentTransaction = new Transaction(dbProvider);
-            }
+            inTransaction<bool>(action, true);
+        }
 
-            bool success = false;
+        /// <summary>
+        /// Executes the specified code using a new database transaction. See Remarks for more info.
+        /// </summary>
+        /// <remarks>
+        /// <para>See Remarks on the connection class (<see cref="TestDB"/>) for general suggestions.</para>
+        /// <para>The transaction is always rolled back.</para>
+        /// </remarks>
+        public TResult InReadOnlyTransaction<TResult>(Func<ReadOnlyTransaction, TResult> func)
+        {
+            return inTransaction<TResult>(func, true);
+        }
+
+        private bool _writableTransactionActive = false;
+        private int _readOnlyTransactionsActive = 0;
+        private IReadableTransaction _currentTransaction;
+
+        private TResult inTransaction<TResult>(Delegate func, bool readOnly)
+        {
+            if (_writableTransactionActive || (_readOnlyTransactionsActive > 0 && !readOnly))
+                throw new InvalidOperationException("Another writable transaction is already active. Only read-only transactions are allowed to be used on the same connection.");
+
             try
             {
                 TResult result;
-                var action = method as Action<Transaction>;
-                if (action != null)
+
+                if (readOnly)
                 {
-                    action(_currentTransaction);
-                    result = default(TResult);
+                    if (_readOnlyTransactionsActive == 0)
+                    {
+                        dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
+                        _currentTransaction = new implReadOnlyTransaction(dbProvider);
+                    }
+                    _readOnlyTransactionsActive++;
+
+                    if (func is Action<ReadOnlyTransaction>)
+                    {
+                        ((Action<ReadOnlyTransaction>) func)((ReadOnlyTransaction) _currentTransaction);
+                        result = default(TResult);
+                    }
+                    else
+                        result = ((Func<ReadOnlyTransaction, TResult>) func)((ReadOnlyTransaction) _currentTransaction);
                 }
                 else
                 {
-                    var func = method as Func<Transaction, TResult>;
-                    result = func(_currentTransaction);
+                    dbProvider.Transaction = dbProvider.Connection.BeginTransaction();
+                    _currentTransaction = new implWritableTransaction(dbProvider);
+                    _writableTransactionActive = true;
+
+                    if (func is Action<WritableTransaction>)
+                    {
+                        ((Action<WritableTransaction>) func)((WritableTransaction) _currentTransaction);
+                        result = default(TResult);
+                    }
+                    else
+                        result = ((Func<WritableTransaction, TResult>) func)((WritableTransaction) _currentTransaction);
+
+                    dbProvider.Transaction.Commit();
                 }
 
-                success = true;
                 return result;
             }
             finally
             {
-                _nestedTransactions--;
-                if (_nestedTransactions == 0)
+                if (!readOnly || _readOnlyTransactionsActive == 1)
                 {
-                    try
-                    {
-                        if (success)
-                            dbProvider.Transaction.Commit(); // can throw deferred constraint violations
-                        else
-                            dbProvider.Transaction.Rollback(); // can probably also throw - disk failure, connection timeout, etc
-                    }
-                    finally
-                    {
-                        dbProvider.Transaction.Dispose();
-                        dbProvider.Transaction = null;
-                        _currentTransaction = null;
-                    }
+                    dbProvider.Transaction.Dispose();
+                    dbProvider.Transaction = null;
                 }
+
+                if (readOnly)
+                    _readOnlyTransactionsActive--;
+                else
+                    _writableTransactionActive = false;
             }
         }
 
         /// <summary>
-        /// Represents a transaction within a <see cref="DB"/> database connection. Do not instantiate this class directly. Instead, use <see cref="DB.ExecuteInTransaction"/>.
+        /// Represents a transaction within a <see cref="DB"/> database connection.
         /// </summary>
-        public sealed partial class Transaction
+        public interface IReadableTransaction
         {
-            /// <summary>
-            /// Gets the underlying database connection, which exposes numerous useful methods.
-            /// </summary>
-            public DbEntityProvider DbProvider { get; private set; }
+            /// <summary>Provides methods to query the AllTypesNotNulls table of the TestDB database.</summary>
+            IQueryable<AllTypesNotNull> AllTypesNotNulls { get; }
+            /// <summary>Provides methods to query the AllTypesNulls table of the TestDB database.</summary>
+            IQueryable<AllTypesNull> AllTypesNulls { get; }
+        }
 
-            /// <summary>
-            /// This constructor is not intended to be used by clients of this class.
-            /// </summary>
-            public Transaction(DbEntityProvider dbProvider)
+        /// <summary>
+        /// Represents a read-only transaction within a <see cref="DB"/> database connection.
+        /// </summary>
+        public abstract class ReadOnlyTransaction : IReadableTransaction
+        {
+            /// <summary>Provides methods to query the AllTypesNotNulls table of the TestDB database.</summary>
+            [Table(Name = "AllTypesNotNull")]
+            [Column(Member = "ColAutoincrement", Name = "ColAutoincrement", IsPrimaryKey = true, IsGenerated = true)]
+            [Column(Member = "ColVarText1", Name = "ColVarText1")]
+            [Column(Member = "ColVarText100", Name = "ColVarText100")]
+            [Column(Member = "ColVarTextMax", Name = "ColVarTextMax")]
+            [Column(Member = "ColVarBinary1", Name = "ColVarBinary1")]
+            [Column(Member = "ColVarBinary100", Name = "ColVarBinary100")]
+            [Column(Member = "ColVarBinaryMax", Name = "ColVarBinaryMax")]
+            [Column(Member = "ColBoolean", Name = "ColBoolean")]
+            [Column(Member = "ColByte", Name = "ColByte")]
+            [Column(Member = "ColShort", Name = "ColShort")]
+            [Column(Member = "ColInt", Name = "ColInt")]
+            [Column(Member = "ColLong", Name = "ColLong")]
+            [Column(Member = "ColDouble", Name = "ColDouble")]
+            [Column(Member = "ColDateTime", Name = "ColDateTime")]
+            public IQueryable<AllTypesNotNull> AllTypesNotNulls
             {
-                DbProvider = dbProvider;
+                get { return DbProvider.GetTable<AllTypesNotNull>("AllTypesNotNulls"); }
             }
 
-            /// <summary>
-            /// Provides methods to query and modify the AllTypesNotNulls table of the TestDB database.
-            /// </summary>
+            /// <summary>Provides methods to query the AllTypesNulls table of the TestDB database.</summary>
+            [Table(Name = "AllTypesNull")]
+            [Column(Member = "ColVarText1", Name = "ColVarText1")]
+            [Column(Member = "ColVarText100", Name = "ColVarText100")]
+            [Column(Member = "ColVarTextMax", Name = "ColVarTextMax")]
+            [Column(Member = "ColVarBinary1", Name = "ColVarBinary1")]
+            [Column(Member = "ColVarBinary100", Name = "ColVarBinary100")]
+            [Column(Member = "ColVarBinaryMax", Name = "ColVarBinaryMax")]
+            [Column(Member = "ColBoolean", Name = "ColBoolean")]
+            [Column(Member = "ColByte", Name = "ColByte")]
+            [Column(Member = "ColShort", Name = "ColShort")]
+            [Column(Member = "ColInt", Name = "ColInt")]
+            [Column(Member = "ColLong", Name = "ColLong")]
+            [Column(Member = "ColDouble", Name = "ColDouble")]
+            [Column(Member = "ColDateTime", Name = "ColDateTime")]
+            public IQueryable<AllTypesNull> AllTypesNulls
+            {
+                get { return DbProvider.GetTable<AllTypesNull>("AllTypesNulls"); }
+            }
+
+            /// <summary>Gets the underlying database connection, which exposes numerous useful methods.</summary>
+            protected DbEntityProvider DbProvider { get; set; }
+        }
+
+        private class implReadOnlyTransaction : ReadOnlyTransaction
+        {
+            public implReadOnlyTransaction(DbEntityProvider dbProvider) { DbProvider = dbProvider; }
+        }
+
+        /// <summary>
+        /// Represents a transaction within a <see cref="DB"/> database connection that allows write access.
+        /// </summary>
+        public abstract class WritableTransaction : IReadableTransaction
+        {
+            /// <summary>Provides methods to query and modify the AllTypesNotNulls table of the TestDB database.</summary>
             [Table(Name = "AllTypesNotNull")]
             [Column(Member = "ColAutoincrement", Name = "ColAutoincrement", IsPrimaryKey = true, IsGenerated = true)]
             [Column(Member = "ColVarText1", Name = "ColVarText1")]
@@ -433,10 +521,9 @@ namespace RT.SqlChainTests
             {
                 get { return DbProvider.GetTable<AllTypesNotNull>("AllTypesNotNulls"); }
             }
+            IQueryable<AllTypesNotNull> IReadableTransaction.AllTypesNotNulls { get { return this.AllTypesNotNulls; } }
 
-            /// <summary>
-            /// Provides methods to query and modify the AllTypesNulls table of the TestDB database.
-            /// </summary>
+            /// <summary>Provides methods to query and modify the AllTypesNulls table of the TestDB database.</summary>
             [Table(Name = "AllTypesNull")]
             [Column(Member = "ColVarText1", Name = "ColVarText1")]
             [Column(Member = "ColVarText100", Name = "ColVarText100")]
@@ -455,6 +542,10 @@ namespace RT.SqlChainTests
             {
                 get { return DbProvider.GetTable<AllTypesNull>("AllTypesNulls"); }
             }
+            IQueryable<AllTypesNull> IReadableTransaction.AllTypesNulls { get { return this.AllTypesNulls; } }
+
+            /// <summary>Gets the underlying database connection, which exposes numerous useful methods.</summary>
+            public DbEntityProvider DbProvider { get; protected set; }
 
             /// <summary>Executes the specified SQL command.</summary>
             public int ExecuteSql(string sql)
@@ -475,6 +566,11 @@ namespace RT.SqlChainTests
                 var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null), new QueryParameter("p1", typeof(T1), null) });
                 return new DbEntityProvider.Executor(DbProvider).ExecuteCommand(cmd, new object[] { p0, p1 });
             }
+        }
+
+        private class implWritableTransaction : WritableTransaction
+        {
+            public implWritableTransaction(DbEntityProvider dbProvider) { DbProvider = dbProvider; }
         }
 
         /// <summary>

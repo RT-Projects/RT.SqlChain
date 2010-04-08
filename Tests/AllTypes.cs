@@ -57,7 +57,7 @@ namespace RT.SqlChainTests
                 rowExtra.ColDouble = 3.1415926535897932384626433832795;
 
                 // Insertion
-                conn.ExecuteInTransaction(txn =>
+                conn.InTransaction(txn =>
                     {
                         rowMax.ColAutoincrement = 12345;
                         rowMin.ColAutoincrement = 23456;
@@ -82,17 +82,17 @@ namespace RT.SqlChainTests
                 // Inserting nulls must throw exceptions for each type that must be nullable in C#
                 TestDB.AllTypesNotNull rowWithNull;
                 rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarText1 = null;
-                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
+                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.InTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
                 rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarBinary100 = null;
-                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
+                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.InTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
                 rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarTextMax = null;
-                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
+                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.InTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
                 rowWithNull = rowEmpty.Clone(); rowWithNull.ColVarBinaryMax = null;
-                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.ExecuteInTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
+                Assert.IsInstanceOf<DbException>(exceptionof(() => conn.InTransaction(txn => txn.AllTypesNotNulls.Insert(rowWithNull))));
 
                 // Retrieval
                 TestDB.AllTypesNotNull readMax = null, readMin = null, readEmpty = null, readExtra = null;
-                conn.ExecuteInTransaction(txn =>
+                conn.InTransaction(txn =>
                 {
                     readMax = txn.AllTypesNotNulls.First(row => row.ColAutoincrement == rowMax.ColAutoincrement);
                     readMin = txn.AllTypesNotNulls.First(row => row.ColAutoincrement == rowMin.ColAutoincrement);
@@ -172,7 +172,7 @@ namespace RT.SqlChainTests
                 rowNull.ColDateTime = null;
 
                 // Insertion
-                conn.ExecuteInTransaction(txn =>
+                conn.InTransaction(txn =>
                 {
                     int affectedMax = txn.AllTypesNulls.Insert(rowMax.Clone());
                     int affectedMin = txn.AllTypesNulls.Insert(rowMin.Clone());
@@ -188,7 +188,7 @@ namespace RT.SqlChainTests
 
                 // Retrieval
                 TestDB.AllTypesNull readMax = null, readMin = null, readEmpty = null, readExtra = null, readNull = null;
-                conn.ExecuteInTransaction(txn =>
+                conn.InTransaction(txn =>
                 {
                     readMax = txn.AllTypesNulls.First(row => row.ColShort == short.MaxValue);
                     readMin = txn.AllTypesNulls.First(row => row.ColShort == short.MinValue);

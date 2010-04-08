@@ -25,7 +25,7 @@ namespace RT.SqlChainTests
             var bytesFrom0To100 = Enumerable.Range(0, 100).Select(b => (byte) b).ToArray();
 
             using (var testdb = new TestDB(conninfo))
-                testdb.ExecuteInTransaction(tr =>
+                testdb.InTransaction(tr =>
                 {
                     tr.AllTypesNotNulls.Insert(new TestDB.AllTypesNotNull
                     {
