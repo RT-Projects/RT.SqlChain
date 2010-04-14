@@ -28,14 +28,16 @@ namespace RT.SqlChain.Schema
 
         private List<DataRow> executeSqlAndGetResults(string sql)
         {
-            var table = new DataTable();
-            using (var cmd = Connection.CreateCommand())
+            using (var table = new DataTable())
             {
-                cmd.CommandText = sql;
-                using (var reader = cmd.ExecuteReader())
-                    _adapter.FillFromReader(table, reader);
+                using (var cmd = Connection.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                        _adapter.FillFromReader(table, reader);
+                }
+                return table.Rows.Cast<DataRow>().ToList(); // performance is irrelevant; just want a convenient list of rows
             }
-            return table.Rows.Cast<DataRow>().ToList(); // performance is irrelevant; just want a convenient list of rows
         }
 
         public override IEnumerable<TableInfo> RetrieveTables()

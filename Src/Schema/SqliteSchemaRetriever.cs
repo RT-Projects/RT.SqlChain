@@ -19,7 +19,8 @@ namespace RT.SqlChain.Schema
 
         private IEnumerable<DataRow> getSchema(string schemaSetName)
         {
-            return Connection.GetSchema(schemaSetName).Rows.Cast<DataRow>();
+            using (var tmp = Connection.GetSchema(schemaSetName))
+                return tmp.Rows.Cast<DataRow>();
         }
 
         private IEnumerable<DataRow> getSchema(string schemaSetName, Func<DataRow, bool> filter)
