@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllTypes.cs" />
+    <Compile Include="Collations.cs" />
     <Compile Include="SchemaOperations.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -92,15 +93,15 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
   -->
   <Target Name="AfterBuild">
     <ItemGroup>
-      <NativeBinaries Include="..\thirdparty\Sqlite-3.6.19\Portable\sqlite*.so" />
-      <NativeBinaries Include="..\thirdparty\Sqlite-3.6.19\Portable\sqlite3.dll" />
+      <NativeBinaries Include="..\thirdparty\Sqlite\sqlite*.so" />
+      <NativeBinaries Include="..\thirdparty\Sqlite\sqlite3.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
   </Target>
