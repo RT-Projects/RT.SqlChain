@@ -125,8 +125,8 @@ namespace RT.SqlChain.Schema
             }
 
             foreach (var pair in newStructure.UniquePairs())
-                if (pair.E1.E1.Name == pair.E2.E1.Name)
-                    throw new InvalidOperationException(@"TransformTable: After applying the transformations, the table would have two columns named ""{0}"". Column names must be unique.".Fmt(pair.E1.E1.Name));
+                if (pair.Item1.E1.Name == pair.Item2.E1.Name)
+                    throw new InvalidOperationException(@"TransformTable: After applying the transformations, the table would have two columns named ""{0}"". Column names must be unique.".Fmt(pair.Item1.E1.Name));
 
             transformTable(table, newStructure);
         }
