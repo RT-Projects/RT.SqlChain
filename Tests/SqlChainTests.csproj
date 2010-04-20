@@ -102,6 +102,7 @@
     <ItemGroup>
       <NativeBinaries Include="..\thirdparty\Sqlite\sqlite*.so" />
       <NativeBinaries Include="..\thirdparty\Sqlite\sqlite3.dll" />
+      <NativeBinaries Include="..\thirdparty\Sqlite\SQLite.Interop.DLL" />
     </ItemGroup>
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
   </Target>
