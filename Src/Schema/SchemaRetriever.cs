@@ -28,8 +28,8 @@ namespace RT.SqlChain.Schema
                 {
                     var sch = Connection.GetSchema(collection);
                     System.IO.File.WriteAllLines("C:/schema-{0}-{1}.csv".Fmt(name, collection),
-                        sch.Columns.Cast<DataColumn>().Select(c => c.Caption).JoinString("\"", "\"", ",").Concat<string>(
-                            sch.Rows.Cast<DataRow>().Select(r => r.ItemArray.Select(item => item.ToString()).JoinString("\"", "\"", ","))).ToArray()
+                        new[] { sch.Columns.Cast<DataColumn>().Select(c => c.Caption).JoinString("\"", "\"", ",") }.Concat<string>(
+                            sch.Rows.Cast<DataRow>().Select(r => r.ItemArray.Select(item => item.ToString()).JoinString("\"", "\"", ",")))
                         );
                 }
                 catch (InvalidOperationException) { }
