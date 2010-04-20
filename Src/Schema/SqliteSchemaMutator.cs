@@ -50,7 +50,7 @@ namespace RT.SqlChain.Schema
             ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.Columns.Select(c => (c.Type.BasicType == BasicType.VarText ? "[{0}] COLLATE INVARIANTCULTUREIGNORECASE" : "[{0}]").Fmt(c.Name)).JoinString(", ")));
         }
 
-        protected override void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure)
+        protected override void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure)
         {
             var schema = table.Schema;
 

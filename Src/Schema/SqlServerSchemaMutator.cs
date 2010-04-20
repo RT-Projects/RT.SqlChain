@@ -72,7 +72,7 @@ namespace RT.SqlChain.Schema
             ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString("[", "]", ", ")));
         }
 
-        protected override void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure)
+        protected override void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure)
         {
             var schema = table.Schema;
 

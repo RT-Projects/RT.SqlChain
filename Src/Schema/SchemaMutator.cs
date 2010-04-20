@@ -86,7 +86,7 @@ namespace RT.SqlChain.Schema
                     throw new InvalidOperationException("TransformTable: The column specified in DeleteColumn does not belong to the same table.");
             }
 
-            var newStructure = new List<Tuple<ColumnInfo, string>>(table.Columns.Select(col => Tuple.New(col, "oldtable.[{0}]".Fmt(col.Name))));
+            var newStructure = new List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>>(table.Columns.Select(col => RT.Util.ObsoleteTuple.Tuple.New(col, "oldtable.[{0}]".Fmt(col.Name))));
 
             foreach (var transform in transforms)
             {
@@ -99,7 +99,7 @@ namespace RT.SqlChain.Schema
                 {
                     int index = Math.Min(newStructure.Count, Math.Max(0, add.InsertAtIndex));
                     add.NewColumn.Table = table;
-                    newStructure.Insert(index, Tuple.New(add.NewColumn, add.Populate ?? "NULL"));
+                    newStructure.Insert(index, RT.Util.ObsoleteTuple.Tuple.New(add.NewColumn, add.Populate ?? "NULL"));
                 }
                 else if ((move = transform as MoveColumn) != null)
                 {
@@ -115,7 +115,7 @@ namespace RT.SqlChain.Schema
                         throw new InvalidOperationException("TransformTable: The RenameColumn transformation refers to a column that doesn't exist or has been removed.");
                     var tuple = newStructure.First(tup => tup.E1 == rename.Column);
                     var index = newStructure.IndexOf(tup => tup.E1 == rename.Column);
-                    newStructure[index] = Tuple.New(new ColumnInfo { Name = rename.NewName, Type = rename.Column.Type, Table = table }, tuple.E2);
+                    newStructure[index] = RT.Util.ObsoleteTuple.Tuple.New(new ColumnInfo { Name = rename.NewName, Type = rename.Column.Type, Table = table }, tuple.E2);
                 }
                 else if ((delete = transform as DeleteColumn) != null)
                 {
@@ -131,7 +131,7 @@ namespace RT.SqlChain.Schema
             transformTable(table, newStructure);
         }
 
-        protected abstract void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure);
+        protected abstract void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure);
 
         public abstract void CreateTable(TableInfo table);
 
