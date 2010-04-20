@@ -506,7 +506,7 @@ namespace RT.SqlChain.Schema
 
         public override string ToString()
         {
-            var on = "[{0}], column(s) {1}".Fmt(TableName, ColumnNames.JoinString("[", "]", ", "));
+            var on = "[{0}], column(s) {1}".Fmt(TableName, ColumnNames.JoinString(", ", "[", "]"));
             switch (Kind)
             {
                 case IndexKind.Normal: return "<Index {0} on {1}>".Fmt(Name, on);

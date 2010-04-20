@@ -69,7 +69,7 @@ namespace RT.SqlChain.Schema
         {
             if (index.Kind != IndexKind.Normal)
                 throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
-            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString("[", "]", ", ")));
+            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString(", ", "[", "]")));
         }
 
         protected override void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure)
