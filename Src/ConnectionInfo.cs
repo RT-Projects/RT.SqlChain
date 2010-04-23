@@ -163,14 +163,14 @@ namespace RT.SqlChain
             if (result != null) return result;
 
             var assyEntry = Assembly.GetEntryAssembly();
-            if (assyExecuting != assyEntry)
+            if (assyEntry != null && assyExecuting != assyEntry)
             {
                 result = tryFindDescendantOfType(assyEntry, type, @namespace);
                 if (result != null) return result;
             }
 
             // Look in all other app domain assemblies, but use assembly name as an optimization
-            if (!_iqtoolkitLoaded)
+            if (!_iqtoolkitLoaded && assyEntry != null)
             {
                 // Even if the IQToolkit.Data.*.dll (iqtoolkit providers) assemblies are referenced, they may not necessarily
                 // be automatically loaded into the current appdomain - for example, they won't if none of their types are
