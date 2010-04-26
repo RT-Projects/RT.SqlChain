@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionInfo.cs" />
+    <Compile Include="TransactionBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Schema\Schema.cs" />
     <Compile Include="Schema\SchemaMutator.cs" />
