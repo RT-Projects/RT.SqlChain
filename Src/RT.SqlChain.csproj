@@ -87,11 +87,11 @@
     <Compile Include="Schema\TableTransform.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\IQToolkit\Src\Sources\IQToolkit.Data\IQToolkit.Data.csproj">
+    <ProjectReference Include="..\..\IQToolkit\Src\IQToolkit.Data\IQToolkit.Data.csproj">
       <Project>{3A356510-9C25-4A94-87B9-EEB31B6A1303}</Project>
       <Name>IQToolkit.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\IQToolkit\Src\Sources\IQToolkit\IQToolkit.csproj">
+    <ProjectReference Include="..\..\IQToolkit\Src\IQToolkit\IQToolkit.csproj">
       <Project>{0DA62A7C-3B40-456F-A4B2-B3E19ED4080E}</Project>
       <Name>IQToolkit</Name>
     </ProjectReference>
