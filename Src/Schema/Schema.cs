@@ -124,12 +124,12 @@ namespace RT.SqlChain.Schema
             if (_tables.Any(t => t.Name.Equals(table.Name)))
                 throw new InvalidOperationException("A table named [{0}] already exists in this schema.".Fmt(table.Name));
 
-            var existingIndexes = _tables.SelectMany(t => t.Indexes).ToDictionary(i => i.Name, StringComparer.InvariantCultureIgnoreCase);
+            var existingIndexes = _tables.SelectMany(t => t.Indexes).ToDictionary(i => i.Name, StringComparer.OrdinalIgnoreCase);
             foreach (var index in table.Indexes)
                 if (existingIndexes.ContainsKey(index.Name))
                     throw new InvalidOperationException("Index [{0}] on table [{1}] has the same name as an index on table [{2}]".Fmt(index.Name, table.Name, existingIndexes[index.Name].TableName));
 
-            var existingForeignKeys = _tables.SelectMany(t => t.ForeignKeys).ToDictionary(fk => fk.Name, StringComparer.InvariantCultureIgnoreCase);
+            var existingForeignKeys = _tables.SelectMany(t => t.ForeignKeys).ToDictionary(fk => fk.Name, StringComparer.OrdinalIgnoreCase);
             foreach (var foreignKey in table.ForeignKeys)
                 if (existingForeignKeys.ContainsKey(foreignKey.Name))
                     throw new InvalidOperationException("Foreign key [{0}] on table [{1}] has the same name as a foreign key on table [{2}]".Fmt(foreignKey.Name, table.Name, existingForeignKeys[foreignKey.Name].TableName));

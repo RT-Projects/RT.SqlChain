@@ -22,7 +22,7 @@ namespace RT.SqlChain.Schema
             string nullable = type.Nullable ? "" : " NOT NULL";
             switch (type.BasicType)
             {
-                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable + " COLLATE INVARIANTCULTUREIGNORECASE";
+                case BasicType.VarText: return "NVARCHAR" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable + " COLLATE ORDINALIGNORECASE";
                 case BasicType.VarBinary: return "VARBINARY" + (type.Length == null ? "" : "({0})".Fmt(type.Length.Value)) + nullable;
                 case BasicType.Autoincrement: return "INTEGER" + nullable;
                 case BasicType.Long: return "INTEGER" + nullable;
@@ -47,7 +47,7 @@ namespace RT.SqlChain.Schema
         {
             if (index.Kind != IndexKind.Normal)
                 throw new InvalidOperationException("This method requires Index kind to be 'Normal'.");
-            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.Columns.Select(c => (c.Type.BasicType == BasicType.VarText ? "[{0}] COLLATE INVARIANTCULTUREIGNORECASE" : "[{0}]").Fmt(c.Name)).JoinString(", ")));
+            ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.Columns.Select(c => (c.Type.BasicType == BasicType.VarText ? "[{0}] COLLATE ORDINALIGNORECASE" : "[{0}]").Fmt(c.Name)).JoinString(", ")));
         }
 
         protected override void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure)

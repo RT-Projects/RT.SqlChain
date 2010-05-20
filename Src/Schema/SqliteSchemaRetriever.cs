@@ -66,13 +66,13 @@ namespace RT.SqlChain.Schema
         public override IEnumerable<ForeignKeyInfo> RetrieveForeignKeys(string tableName)
         {
             var schFKs = getSchema("ForeignKeys", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName) && row["CONSTRAINT_TYPE"].ToString().EqualsNoCase("FOREIGN KEY"));
-            var FKs = schFKs.GroupBy(row => row["CONSTRAINT_NAME"].ToString(), StringComparer.InvariantCultureIgnoreCase);
+            var FKs = schFKs.GroupBy(row => row["CONSTRAINT_NAME"].ToString(), StringComparer.OrdinalIgnoreCase);
 
             foreach (var group in FKs.OrderBy(fk => fk.Key))
             {
-                var allNames = group.Select(r => r["CONSTRAINT_NAME"].ToString()).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
-                var allTableNames = group.Select(r => r["TABLE_NAME"].ToString()).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
-                var allReferencedTableNames = group.Select(r => r["FKEY_TO_TABLE"].ToString()).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
+                var allNames = group.Select(r => r["CONSTRAINT_NAME"].ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                var allTableNames = group.Select(r => r["TABLE_NAME"].ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                var allReferencedTableNames = group.Select(r => r["FKEY_TO_TABLE"].ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 if (allNames.Count != 1 || allTableNames.Count != 1 || allReferencedTableNames.Count != 1)
                     throw new InternalError("Single ForeignKey group has multiple distinct names for the constraint or the referenced tables.");
 

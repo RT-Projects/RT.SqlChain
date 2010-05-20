@@ -216,12 +216,12 @@ namespace RT.SqlChain
         // Ensure that any Sqlite connection used by SqlChain will use the invariant-culture ignore-case string comparison
         static SqliteConnectionInfo() { SQLiteFunction.RegisterFunction(typeof(sqliteCollationRegistrator)); }
 
-        [SQLiteFunction(FuncType = FunctionType.Collation, Name = "INVARIANTCULTUREIGNORECASE")]
+        [SQLiteFunction(FuncType = FunctionType.Collation, Name = "ORDINALIGNORECASE")]
         private class sqliteCollationRegistrator : SQLiteFunction
         {
             public override int Compare(string x, string y)
             {
-                return string.Compare(x, y, StringComparison.InvariantCultureIgnoreCase);
+                return string.Compare(x, y, StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -319,7 +319,7 @@ namespace RT.SqlChain
         {
             if (!(obj is SqliteConnectionInfo))
                 return false;
-            return ((SqliteConnectionInfo) obj).FileName.Equals(FileName, StringComparison.InvariantCultureIgnoreCase);
+            return ((SqliteConnectionInfo) obj).FileName.Equals(FileName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
