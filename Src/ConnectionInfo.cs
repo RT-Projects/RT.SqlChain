@@ -324,7 +324,7 @@ namespace RT.SqlChain
 
         public override int GetHashCode()
         {
-            return FileName.ToLowerInvariant().GetHashCode();
+            return FileName.ToUpperInvariant().GetHashCode();
         }
     }
 
@@ -468,7 +468,7 @@ namespace RT.SqlChain
 
         public override int GetHashCode()
         {
-            return Server.ToLowerInvariant().GetHashCode() + Database.ToLowerInvariant().GetHashCode() * 17;
+            return Server.ToUpperInvariant().GetHashCode() + Database.ToUpperInvariant().GetHashCode() * 17;
         }
     }
 }
