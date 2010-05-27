@@ -2,11 +2,10 @@
 using System.Data.Common;
 using System.Linq;
 using System.Xml.Linq;
+using IQToolkit;
 using NUnit.Framework;
 using RT.SqlChain;
-using RT.Util;
 using RT.Util.Xml;
-using System.Reflection;
 
 namespace RT.SqlChainTests
 {
@@ -40,6 +39,8 @@ namespace RT.SqlChainTests
                 conn.InTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
             using (var conn = new TestDB(conninfo))
                 conn.InTransaction(txn => { var rows = txn.AllTypesNotNulls.ToArray(); });
+            using (var conn = new TestDB(conninfo))
+                conn.InTransaction(txn => { txn.AllTypesNulls.Batch(new[] { new TestDB.AllTypesNull { ColInt = 47 } }, (table, entry) => table.Insert(entry)); });
 
             // Try to delete - this only succeeds if all connections were closed properly
             conninfo.DeleteSchema();

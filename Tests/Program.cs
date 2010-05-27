@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 using NUnit.Direct;
 using NUnit.Framework;
 using RT.SqlChain;
@@ -90,6 +91,7 @@ namespace RT.SqlChainTests
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             NUnitDirect.RunTestsOnAssembly(Assembly.GetEntryAssembly());
             Console.WriteLine("Press Enter to exit.");
             Console.ReadLine();
