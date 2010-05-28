@@ -12,7 +12,7 @@ namespace RT.SqlChainTests
         [Test]
         public void AllTypesNotNull([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            using (var conn = createConnAndSchema(kind))
+            using (var conn = createSchemaAndOpenConn(kind))
             {
                 var rowMax = new TestDB.AllTypesNotNull();
                 rowMax.ColVarText1 = "a";
@@ -111,7 +111,7 @@ namespace RT.SqlChainTests
         [Test]
         public void AllTypesNull([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            using (var conn = createConnAndSchema(kind))
+            using (var conn = createSchemaAndOpenConn(kind))
             {
                 var rowMax = new TestDB.AllTypesNull();
                 rowMax.ColVarText1 = "a";

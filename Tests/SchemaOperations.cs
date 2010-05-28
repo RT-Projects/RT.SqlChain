@@ -14,7 +14,7 @@ namespace RT.SqlChainTests
         [Test]
         public void TestSchemaOperations([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            ConnectionInfo conninfo = getConnInfo(kind, "closetest");
+            ConnectionInfo conninfo = getConnInfoAndDeleteSchema(kind, "closetest");
             conninfo.Log = Console.Out;
 
             // Test 1

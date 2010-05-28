@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="AllTypes.cs" />
     <Compile Include="Collations.cs" />
+    <Compile Include="CompiledQuery.cs" />
     <Compile Include="SchemaOperations.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

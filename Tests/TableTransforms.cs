@@ -16,7 +16,7 @@ namespace RT.SqlChainTests
         [Test]
         public void TestTableTransforms([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            ConnectionInfo conninfo = getConnInfo(kind, null);
+            ConnectionInfo conninfo = getConnInfoAndDeleteSchema(kind, null);
             conninfo.Log = Console.Out;
 
             TestDB.CreateSchema(conninfo);

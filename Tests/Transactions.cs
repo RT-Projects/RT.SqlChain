@@ -11,7 +11,7 @@ namespace RT.SqlChainTests
         [Test]
         public void Transactions([Values(DbmsKind.Sqlite, DbmsKind.SqlServer)] DbmsKind kind)
         {
-            using (var conn = createConnAndSchema(kind))
+            using (var conn = createSchemaAndOpenConn(kind))
             {
                 Assert.AreEqual(0, conn.InReadOnlyTransaction(txn => txn.AllTypesNulls.Count()));
 

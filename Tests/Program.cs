@@ -23,22 +23,27 @@ namespace RT.SqlChainTests
                     var dbFilename = "SqlChainTestDB" + suffix + ".db3";
                     var connInfoSqlite = new SqliteConnectionInfo(Assembly.GetEntryAssembly() == null ? dbFilename : PathUtil.AppPathCombine(dbFilename));
                     connInfoSqlite.Log = Console.Out;
-                    connInfoSqlite.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
                     return connInfoSqlite;
 
                 case DbmsKind.SqlServer:
                     var connInfoSqlServer = new SqlServerConnectionInfo("LOCALHOST\\SQLEXPRESS", "SQLCHAIN_TEST_DB" + suffix);
                     connInfoSqlServer.Log = Console.Out;
-                    connInfoSqlServer.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
                     return connInfoSqlServer;
 
                 default: throw new InternalError("hoffsho");
             }
         }
 
-        private TestDB createConnAndSchema(DbmsKind kind)
+        private ConnectionInfo getConnInfoAndDeleteSchema(DbmsKind kind, string suffix)
         {
-            var connInfo = getConnInfo(kind, null);
+            var result = getConnInfo(kind, suffix);
+            result.DeleteSchema();   // must succeed even if the schemas were properly deleted on last run.
+            return result;
+        }
+
+        private TestDB createSchemaAndOpenConn(DbmsKind kind)
+        {
+            var connInfo = getConnInfoAndDeleteSchema(kind, null);
             TestDB.CreateSchema(connInfo);
             return new TestDB(connInfo);
         }
