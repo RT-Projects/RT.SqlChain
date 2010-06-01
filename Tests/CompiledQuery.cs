@@ -21,7 +21,7 @@ namespace RT.SqlChainTests
                     q47 = CompiledQuery.Create((TestDB.WritableTransaction txn2) => txn2.AllTypesNulls.Where(t => t.ColInt == 47).Select(r => r.ColVarTextMax).OrderBy(v => v)).Compile(txn.AllTypesNulls.Provider);
                     q48 = CompiledQuery.Create((TestDB.WritableTransaction txn2) => txn2.AllTypesNulls.Where(t => t.ColInt == 48).Select(r => r.ColVarTextMax).OrderBy(v => v)).Compile(txn.AllTypesNulls.Provider);
                     q49 = CompiledQuery.Create((TestDB.WritableTransaction txn2) => txn2.AllTypesNulls.Where(t => t.ColInt == 49).Select(r => r.ColVarTextMax).OrderBy(v => v)).Compile(txn.AllTypesNulls.Provider);
-                    //qDel47 = CompiledQuery.Create((TestDB.WritableTransaction txn2) => txn2.AllTypesNulls.Delete(t => t.ColInt == 47)).Compile(txn.AllTypesNulls.Provider);
+                    qDel47 = CompiledQuery.Create((TestDB.WritableTransaction txn2) => txn2.AllTypesNulls.Delete(t => t.ColInt == 47)).Compile(txn.AllTypesNulls.Provider);
 
                     txn.AllTypesNulls.Insert(new TestDB.AllTypesNull { ColInt = 46, ColVarTextMax = "forty six" });
                     txn.AllTypesNulls.Insert(new TestDB.AllTypesNull { ColInt = 47, ColVarTextMax = "forty seven 1" });
@@ -32,12 +32,12 @@ namespace RT.SqlChainTests
 
             using (var conn = new TestDB(getConnInfo(kind, null)))
             {
-                conn.InTransaction(txnabc =>
+                conn.InTransaction(txn =>
                 {
-                    var vals46 = q46(txnabc).ToList();
-                    var vals47 = q47(txnabc).ToList();
-                    var vals48 = q48(txnabc).ToList();
-                    var vals49 = q49(txnabc).ToList();
+                    var vals46 = q46(txn).ToList();
+                    var vals47 = q47(txn).ToList();
+                    var vals48 = q48(txn).ToList();
+                    var vals49 = q49(txn).ToList();
                     Assert.AreEqual(1, vals46.Count);
                     Assert.AreEqual(2, vals47.Count);
                     Assert.AreEqual(1, vals48.Count);
@@ -46,11 +46,10 @@ namespace RT.SqlChainTests
                     Assert.AreEqual("forty seven 1", vals47[0]);
                     Assert.AreEqual("forty seven 2", vals47[1]);
                     Assert.AreEqual("forty eight", vals48[0]);
-#warning Bring back the failing compiled deletion test.
-                    //qDel47(null); // FAILS!
-                    //Assert.AreEqual(1, q46(null).Count());
-                    //Assert.AreEqual(0, q47(null).Count());
-                    //Assert.AreEqual(1, q48(null).Count());
+                    qDel47(txn);
+                    Assert.AreEqual(1, q46(txn).Count());
+                    Assert.AreEqual(0, q47(txn).Count());
+                    Assert.AreEqual(1, q48(txn).Count());
                 });
             }
         }
