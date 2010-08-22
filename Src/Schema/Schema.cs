@@ -512,7 +512,7 @@ namespace RT.SqlChain.Schema
                 case IndexKind.Normal: return "<Index {0} on {1}>".Fmt(Name, on);
                 case IndexKind.Unique: return "<Unique Index {0} on {1}>".Fmt(Name, on);
                 case IndexKind.PrimaryKey: return "<Primary Key Index {0} on {1}>".Fmt(Name, on);
-                default: throw new InternalError("Unexpected IndexKind");
+                default: throw new InternalErrorException("Unexpected IndexKind");
             }
         }
     }

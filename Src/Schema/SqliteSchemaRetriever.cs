@@ -74,7 +74,7 @@ namespace RT.SqlChain.Schema
                 var allTableNames = group.Select(r => r["TABLE_NAME"].ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 var allReferencedTableNames = group.Select(r => r["FKEY_TO_TABLE"].ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 if (allNames.Count != 1 || allTableNames.Count != 1 || allReferencedTableNames.Count != 1)
-                    throw new InternalError("Single ForeignKey group has multiple distinct names for the constraint or the referenced tables.");
+                    throw new InternalErrorException("Single ForeignKey group has multiple distinct names for the constraint or the referenced tables.");
 
                 var foreignKey = new ForeignKeyInfo();
                 var firstrow = group.First();
