@@ -30,7 +30,7 @@ namespace RT.SqlChainTests
                     connInfoSqlServer.Log = Console.Out;
                     return connInfoSqlServer;
 
-                default: throw new InternalError("hoffsho");
+                default: throw new InternalErrorException("hoffsho");
             }
         }
 
