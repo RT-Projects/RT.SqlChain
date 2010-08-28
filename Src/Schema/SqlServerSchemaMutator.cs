@@ -72,7 +72,7 @@ namespace RT.SqlChain.Schema
             ExecuteSql("CREATE INDEX [{0}] ON [{1}] ({2})".Fmt(index.Name, index.TableName, index.ColumnNames.JoinString(", ", "[", "]")));
         }
 
-        protected override void transformTable(TableInfo table, List<RT.Util.ObsoleteTuple.Tuple<ColumnInfo, string>> newStructure)
+        protected override void transformTable(TableInfo table, List<Tuple<ColumnInfo, string>> newStructure)
         {
             var schema = table.Schema;
 
@@ -101,8 +101,8 @@ namespace RT.SqlChain.Schema
             {
                 if (!first)
                     sb.AppendLine(",");
-                sb.Append("    [{0}] {1}".Fmt(struc.E1.Name, TypeToSqlString(struc.E1.Type)));
-                if (struc.E1.Type.BasicType == BasicType.Autoincrement)
+                sb.Append("    [{0}] {1}".Fmt(struc.Item1.Name, TypeToSqlString(struc.Item1.Type)));
+                if (struc.Item1.Type.BasicType == BasicType.Autoincrement)
                     sb.Append(" " + AutoincrementSuffix);
                 first = false;
             }
@@ -114,10 +114,10 @@ namespace RT.SqlChain.Schema
 
             sb = new StringBuilder();
             sb.Append("INSERT INTO [{0}] (".Fmt(newTableName));
-            sb.Append(newStructure.Select(struc => "[{0}]".Fmt(struc.E1.Name)).JoinString(", "));
+            sb.Append(newStructure.Select(struc => "[{0}]".Fmt(struc.Item1.Name)).JoinString(", "));
             sb.AppendLine(")");
             sb.Append("SELECT ");
-            sb.AppendLine(newStructure.Select(struc => struc.E2).JoinString(", "));
+            sb.AppendLine(newStructure.Select(struc => struc.Item2).JoinString(", "));
             sb.AppendLine("FROM [{0}] oldtable".Fmt(table.Name));
             ExecuteSql(sb.ToString());
 
