@@ -6,6 +6,8 @@ using NUnit.Framework;
 using RT.SqlChain;
 using RT.Util;
 
+[assembly: Timeout(20000)]
+
 namespace RT.SqlChainTests
 {
     public enum DbmsKind { Sqlite, SqlServer }
