@@ -6,7 +6,7 @@ using NUnit.Framework;
 using RT.SqlChain;
 using RT.Util;
 
-[assembly: Timeout(20000)]
+[assembly: Timeout(40000)]
 
 namespace RT.SqlChainTests
 {
