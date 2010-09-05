@@ -201,9 +201,9 @@ namespace RT.SqlChain.Schema
 
             // Foreign key columns must be the same type as the referenced columns
             foreach (var fk in ForeignKeys)
-                foreach (var cols in fk.Columns.Zip(fk.ReferencedColumns))
-                    if (!cols.Item1.Type.IsForeignKeyCompatibleWith(cols.Item2.Type))
-                        throw new SchemaValidationException("Foreign key [{0}] ([{1}] => [{2}]): columns [{3}] => [{4}] use types incompatible for foreign key purposes in some DBMSs ({5} vs {6}).".Fmt(fk.Name, fk.Table.Name, fk.ReferencedTable.Name, cols.Item1.Name, cols.Item2.Name, cols.Item1.Type, cols.Item2.Type));
+                foreach (var cols in fk.Columns.Zip(fk.ReferencedColumns, (c, refc) => new { Column = c, ReferencedColumn = refc }))
+                    if (!cols.Column.Type.IsForeignKeyCompatibleWith(cols.ReferencedColumn.Type))
+                        throw new SchemaValidationException("Foreign key [{0}] ([{1}] => [{2}]): columns [{3}] => [{4}] use types incompatible for foreign key purposes in some DBMSs ({5} vs {6}).".Fmt(fk.Name, fk.Table.Name, fk.ReferencedTable.Name, cols.Column.Name, cols.ReferencedColumn.Name, cols.Column.Type, cols.ReferencedColumn.Type));
 
             // Indexes not allowed on certain column types
             foreach (var index in Indexes)
