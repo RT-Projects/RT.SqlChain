@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using NUnit.Direct;
@@ -98,10 +99,17 @@ namespace RT.SqlChainTests
     {
         static void Main(string[] args)
         {
+            bool wait = !args.Contains("--no-wait");
+            bool notimes = args.Contains("--no-times");
+
             Console.OutputEncoding = Encoding.UTF8;
-            NUnitDirect.RunTestsOnAssembly(Assembly.GetEntryAssembly());
-            Console.WriteLine("Press Enter to exit.");
-            Console.ReadLine();
+            NUnitDirect.RunTestsOnAssembly(Assembly.GetEntryAssembly(), notimes);
+
+            if (wait)
+            {
+                Console.WriteLine("Press Enter to exit.");
+                Console.ReadLine();
+            }
         }
     }
 }
