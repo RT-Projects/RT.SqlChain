@@ -37,6 +37,12 @@ namespace RT.SqlChain
         protected abstract string ProviderNamespace { get; }
 
         /// <summary>
+        /// A value indicating which DB engine this connection information is for. There is a one-to-one correspondence between
+        /// this value and the actual, run-time type of this connection information instance.
+        /// </summary>
+        public abstract DbEngine DbEngineType { get; }
+
+        /// <summary>
         /// Gets/sets a <see cref="TextWriter"/> object used for logging debug information, including
         /// all SQL queries, associated with this connection. Defaults to null, which disables logging.
         /// </summary>
@@ -242,6 +248,8 @@ namespace RT.SqlChain
 
         protected override string ProviderNamespace { get { return "IQToolkit.Data.SQLite"; } }
 
+        public override DbEngine DbEngineType { get { return DbEngine.Sqlite; } }
+
         /// <summary>
         /// Describes a connection to an SQLite database in file <paramref name="fileName"/>.
         /// </summary>
@@ -348,6 +356,8 @@ namespace RT.SqlChain
         public string Database { get; private set; }
 
         protected override string ProviderNamespace { get { return "IQToolkit.Data.SqlClient"; } }
+
+        public override DbEngine DbEngineType { get { return DbEngine.SqlServer; } }
 
         public SqlServerConnectionInfo(string server, string database)
         {

@@ -48,7 +48,7 @@ namespace RT.SqlChainTests
             using (var conn = conninfo.CreateConnection())
             {
                 var retriever = conninfo.CreateSchemaRetriever(conn);
-                var schema = retriever.RetrieveSchema();
+                var schema = retriever.RetrieveSchema(conninfo.DbEngineType);
                 var mutator = conninfo.CreateSchemaMutator(conn, false);
                 var table = schema.Table("AllTypesNotNull");
 
@@ -69,7 +69,7 @@ namespace RT.SqlChainTests
             using (var conn = conninfo.CreateConnection())
             {
                 var retriever = conninfo.CreateSchemaRetriever(conn);
-                var newSchema = retriever.RetrieveSchema();
+                var newSchema = retriever.RetrieveSchema(conninfo.DbEngineType);
                 var cols = newSchema.Table("AllTypesNotNull").Columns.ToArray();
                 Assert.AreEqual(19, cols.Length);
 

@@ -29,7 +29,7 @@ namespace RT.SqlChainTests
             using (var dbconn = conninfo.CreateConnection())
             {
                 var retr = conninfo.CreateSchemaRetriever(dbconn);
-                var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema());
+                var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema(conninfo.DbEngineType));
                 var xmlExpected = XElement.Parse(TestDB.SchemaAsXml);
                 Assert.IsTrue(XNode.DeepEquals(xmlActual, xmlExpected));
             }

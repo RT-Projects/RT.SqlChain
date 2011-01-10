@@ -49,11 +49,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionInfo.cs" />
+    <Compile Include="StaticInfo.cs" />
+    <Compile Include="SqlString.cs" />
     <Compile Include="TransactionBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Schema\Schema.cs" />
     <Compile Include="Schema\SchemaMutator.cs" />
-    <Compile Include="Schema\SchemaRetriever.cs"></Compile>
+    <Compile Include="Schema\SchemaRetriever.cs" />
     <Compile Include="Schema\SqliteSchemaMutator.cs" />
     <Compile Include="Schema\SqliteSchemaRetriever.cs" />
     <Compile Include="Schema\SqlServerSchemaMutator.cs" />

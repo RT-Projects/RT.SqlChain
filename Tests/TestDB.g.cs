@@ -100,7 +100,7 @@ namespace RT.SqlChainTests
         {
             var xml = XElement.Parse(SchemaAsXml);
             var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
-            schema.XmlDeclassifyFixup();
+            schema.XmlDeclassifyFixup(connectionInfo.DbEngineType);
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
                 var mutator = connectionInfo.CreateSchemaMutator(conn, false);
@@ -117,7 +117,7 @@ namespace RT.SqlChainTests
         {
             var xml = XElement.Parse(SchemaAsXml);
             var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
-            schema.XmlDeclassifyFixup();
+            schema.XmlDeclassifyFixup(connectionInfo.DbEngineType);
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
                 var mutator = connectionInfo.CreateSchemaMutator(conn, true);
@@ -149,7 +149,7 @@ namespace RT.SqlChainTests
         /// Represents a single row of the AllTypesNotNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
-        public partial class AllTypesNotNull : ICloneable
+        public sealed partial class AllTypesNotNull : ICloneable
         {
             /// <summary>Represents the ColAutoincrement column in the AllTypesNotNull table. (Type: Autoincrement, NOT NULL)</summary>
             public long ColAutoincrement { get; set; }
@@ -179,6 +179,124 @@ namespace RT.SqlChainTests
             public double ColDouble { get; set; }
             /// <summary>Represents the ColDateTime column in the AllTypesNotNull table. (Type: DateTime, NOT NULL)</summary>
             public DateTime ColDateTime { get; set; }
+
+            /// <summary>Provides information about the AllTypesNotNull table.</summary>
+            public static StaticTableInfo Table = new StaticTableInfo(
+                sqlName: "AllTypesNotNull"
+            );
+
+            /// <summary>Provides information about the ColAutoincrement column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColAutoincrement = new StaticColumnInfo(
+                table: Table,
+                name: "ColAutoincrement",
+                sqlName: "ColAutoincrement",
+                isPartOfPrimaryKey: true,
+                isAutoIncrement: true
+            );
+            /// <summary>Provides information about the ColVarText1 column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarText1 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarText1",
+                sqlName: "ColVarText1",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarText100 column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarText100 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarText100",
+                sqlName: "ColVarText100",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarTextMax column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarTextMax = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarTextMax",
+                sqlName: "ColVarTextMax",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinary1 column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarBinary1 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinary1",
+                sqlName: "ColVarBinary1",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinary100 column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarBinary100 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinary100",
+                sqlName: "ColVarBinary100",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinaryMax column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColVarBinaryMax = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinaryMax",
+                sqlName: "ColVarBinaryMax",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColBoolean column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColBoolean = new StaticColumnInfo(
+                table: Table,
+                name: "ColBoolean",
+                sqlName: "ColBoolean",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColByte column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColByte = new StaticColumnInfo(
+                table: Table,
+                name: "ColByte",
+                sqlName: "ColByte",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColShort column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColShort = new StaticColumnInfo(
+                table: Table,
+                name: "ColShort",
+                sqlName: "ColShort",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColInt column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColInt = new StaticColumnInfo(
+                table: Table,
+                name: "ColInt",
+                sqlName: "ColInt",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColLong column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColLong = new StaticColumnInfo(
+                table: Table,
+                name: "ColLong",
+                sqlName: "ColLong",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColDouble column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColDouble = new StaticColumnInfo(
+                table: Table,
+                name: "ColDouble",
+                sqlName: "ColDouble",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColDateTime column in the AllTypesNotNull table.</summary>
+            public static StaticColumnInfo ColColDateTime = new StaticColumnInfo(
+                table: Table,
+                name: "ColDateTime",
+                sqlName: "ColDateTime",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
 
             /// <summary>Implement this partial method to define a custom <see cref="ToString"/> conversion.</summary>
             partial void ToStringCustom(ref string result);
@@ -229,7 +347,7 @@ namespace RT.SqlChainTests
         /// Represents a single row of the AllTypesNull table. The instances of this class are
         /// in no way "connected" to the table, and simply hold the row data.
         /// </summary>
-        public partial class AllTypesNull : ICloneable
+        public sealed partial class AllTypesNull : ICloneable
         {
             /// <summary>Represents the ColVarText1 column in the AllTypesNull table. (Type: VarText, NULL, len=1)</summary>
             public string ColVarText1 { get; set; }
@@ -257,6 +375,116 @@ namespace RT.SqlChainTests
             public double? ColDouble { get; set; }
             /// <summary>Represents the ColDateTime column in the AllTypesNull table. (Type: DateTime, NULL)</summary>
             public DateTime? ColDateTime { get; set; }
+
+            /// <summary>Provides information about the AllTypesNull table.</summary>
+            public static StaticTableInfo Table = new StaticTableInfo(
+                sqlName: "AllTypesNull"
+            );
+
+            /// <summary>Provides information about the ColVarText1 column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarText1 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarText1",
+                sqlName: "ColVarText1",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarText100 column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarText100 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarText100",
+                sqlName: "ColVarText100",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarTextMax column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarTextMax = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarTextMax",
+                sqlName: "ColVarTextMax",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinary1 column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarBinary1 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinary1",
+                sqlName: "ColVarBinary1",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinary100 column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarBinary100 = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinary100",
+                sqlName: "ColVarBinary100",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColVarBinaryMax column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColVarBinaryMax = new StaticColumnInfo(
+                table: Table,
+                name: "ColVarBinaryMax",
+                sqlName: "ColVarBinaryMax",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColBoolean column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColBoolean = new StaticColumnInfo(
+                table: Table,
+                name: "ColBoolean",
+                sqlName: "ColBoolean",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColByte column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColByte = new StaticColumnInfo(
+                table: Table,
+                name: "ColByte",
+                sqlName: "ColByte",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColShort column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColShort = new StaticColumnInfo(
+                table: Table,
+                name: "ColShort",
+                sqlName: "ColShort",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColInt column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColInt = new StaticColumnInfo(
+                table: Table,
+                name: "ColInt",
+                sqlName: "ColInt",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColLong column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColLong = new StaticColumnInfo(
+                table: Table,
+                name: "ColLong",
+                sqlName: "ColLong",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColDouble column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColDouble = new StaticColumnInfo(
+                table: Table,
+                name: "ColDouble",
+                sqlName: "ColDouble",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
+            /// <summary>Provides information about the ColDateTime column in the AllTypesNull table.</summary>
+            public static StaticColumnInfo ColColDateTime = new StaticColumnInfo(
+                table: Table,
+                name: "ColDateTime",
+                sqlName: "ColDateTime",
+                isPartOfPrimaryKey: false,
+                isAutoIncrement: false
+            );
 
             /// <summary>Implement this partial method to define a custom <see cref="ToString"/> conversion.</summary>
             partial void ToStringCustom(ref string result);
@@ -337,9 +565,9 @@ namespace RT.SqlChainTests
         /// <para>To rollback the transaction, let <paramref name="action"/> throw an exception. This exception will
         /// NOT be caught by <see cref="InTransaction"/>, so make sure you handle any exceptions escaping this call as appropriate.</para>
         /// </remarks>
-        public TResult InTransaction<TResult>(Func<WritableTransaction, TResult> func)
+        public TResult InTransaction<TResult>(Func<WritableTransaction, TResult> action)
         {
-            return inTransaction<TResult>(func, false);
+            return inTransaction<TResult>(action, false);
         }
 
         /// <summary>
@@ -361,9 +589,9 @@ namespace RT.SqlChainTests
         /// <para>See Remarks on the connection class (<see cref="TestDB"/>) for general suggestions.</para>
         /// <para>The transaction is always rolled back.</para>
         /// </remarks>
-        public TResult InReadOnlyTransaction<TResult>(Func<ReadOnlyTransaction, TResult> func)
+        public TResult InReadOnlyTransaction<TResult>(Func<ReadOnlyTransaction, TResult> action)
         {
-            return inTransaction<TResult>(func, true);
+            return inTransaction<TResult>(action, true);
         }
 
         private bool _writableTransactionActive = false;
@@ -444,7 +672,7 @@ namespace RT.SqlChainTests
         /// <summary>
         /// Represents a read-only transaction within a <see cref="DB"/> database connection.
         /// </summary>
-        public abstract class ReadOnlyTransaction : IReadableTransaction
+        public abstract class ReadOnlyTransaction : ReadableTransactionBase, IReadableTransaction
         {
             /// <summary>Provides methods to query the AllTypesNotNulls table of the TestDB database.</summary>
             [Table(Name = "AllTypesNotNull")]
@@ -487,11 +715,9 @@ namespace RT.SqlChainTests
                 get { return DbProvider.GetTable<AllTypesNull>("AllTypesNulls"); }
             }
 
-            /// <summary>Gets the underlying database connection, which exposes numerous useful methods.</summary>
-            protected DbEntityProvider DbProvider { get; set; }
         }
 
-        private class implReadOnlyTransaction : ReadOnlyTransaction
+        private sealed class implReadOnlyTransaction : ReadOnlyTransaction
         {
             public implReadOnlyTransaction(DbEntityProvider dbProvider) { DbProvider = dbProvider; }
         }
@@ -499,7 +725,7 @@ namespace RT.SqlChainTests
         /// <summary>
         /// Represents a transaction within a <see cref="DB"/> database connection that allows write access.
         /// </summary>
-        public abstract class WritableTransaction : IReadableTransaction
+        public abstract class WritableTransaction : WritableTransactionBase, IReadableTransaction
         {
             /// <summary>Provides methods to query and modify the AllTypesNotNulls table of the TestDB database.</summary>
             [Table(Name = "AllTypesNotNull")]
@@ -544,31 +770,9 @@ namespace RT.SqlChainTests
             }
             IQueryable<AllTypesNull> IReadableTransaction.AllTypesNulls { get { return this.AllTypesNulls; } }
 
-            /// <summary>Gets the underlying database connection, which exposes numerous useful methods.</summary>
-            public DbEntityProvider DbProvider { get; protected set; }
-
-            /// <summary>Executes the specified SQL command.</summary>
-            public int ExecuteSql(string sql)
-            {
-                return DbProvider.ExecuteCommand(sql);
-            }
-
-            /// <summary>Executes the specified SQL command with the specified parameter value.</summary>
-            public int ExecuteSql<T0>(string sql, T0 p0)
-            {
-                var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null) });
-                return new DbEntityProvider.Executor(DbProvider).ExecuteCommand(cmd, new object[] { p0 });
-            }
-
-            /// <summary>Executes the specified SQL command with the specified parameter values.</summary>
-            public int ExecuteSql<T0, T1>(string sql, T0 p0, T1 p1)
-            {
-                var cmd = new QueryCommand(sql, new QueryParameter[] { new QueryParameter("p0", typeof(T0), null), new QueryParameter("p1", typeof(T1), null) });
-                return new DbEntityProvider.Executor(DbProvider).ExecuteCommand(cmd, new object[] { p0, p1 });
-            }
         }
 
-        private class implWritableTransaction : WritableTransaction
+        private sealed class implWritableTransaction : WritableTransaction
         {
             public implWritableTransaction(DbEntityProvider dbProvider) { DbProvider = dbProvider; }
         }
