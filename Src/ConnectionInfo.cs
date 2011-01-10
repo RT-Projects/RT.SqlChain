@@ -17,6 +17,19 @@ using RT.Util.Xml;
 namespace RT.SqlChain
 {
     /// <summary>
+    /// Represents a set of database engines.
+    /// </summary>
+    [Flags]
+    public enum DbEngine
+    {
+        None = 0,
+        Sqlite = 1,
+        MySql = 2,
+        SqlServer = 4,
+        All = Sqlite | MySql | SqlServer
+    }
+
+    /// <summary>
     /// Describes an SqlChain database connection.
     /// </summary>
     public abstract class ConnectionInfo

@@ -177,7 +177,7 @@ namespace RT.SqlChain.Schema
             }
         }
 
-        public void XmlDeclassifyFixup()
+        public void XmlDeclassifyFixup(DbEngine supportedEngines)
         {
             foreach (var table in _tables)
                 table.XmlDeclassifyFixup();
@@ -187,10 +187,10 @@ namespace RT.SqlChain.Schema
             foreach (var table in tables)
                 AddTable(table);
 
-            Validate();
+            Validate(supportedEngines);
         }
 
-        public void Validate()
+        public void Validate(DbEngine supportedEngines)
         {
             // All table names must be distinct
             // TODO
@@ -209,9 +209,12 @@ namespace RT.SqlChain.Schema
             foreach (var index in Indexes)
                 foreach (var col in index.Columns)
                 {
-                    // MS SQL Server cannot index NVAR*(MAX) columns
-                    if ((col.Type.BasicType == BasicType.VarText || col.Type.BasicType == BasicType.VarBinary) && col.Type.Length == null)
-                        throw new SchemaValidationException("Index [{0}] on table [{1}] references column [{2}], which is of type {3} with maximum length. Some DBMSs cannot index such columns.".Fmt(index.Name, index.Table.Name, col.Name, col.Type.BasicType));
+                    if (supportedEngines.HasFlag(DbEngine.SqlServer))
+                    {
+                        // MS SQL Server cannot index NVAR*(MAX) columns
+                        if ((col.Type.BasicType == BasicType.VarText || col.Type.BasicType == BasicType.VarBinary) && col.Type.Length == null)
+                            throw new SchemaValidationException("Index [{0}] on table [{1}] references column [{2}], which is of type {3} with maximum length. MS SQL Server cannot index such columns.".Fmt(index.Name, index.Table.Name, col.Name, col.Type.BasicType));
+                    }
                 }
         }
 

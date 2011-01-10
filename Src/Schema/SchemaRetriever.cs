@@ -37,14 +37,14 @@ namespace RT.SqlChain.Schema
         }
 #endif
 
-        public virtual SchemaInfo RetrieveSchema()
+        public virtual SchemaInfo RetrieveSchema(DbEngine supportedEngines)
         {
             var schema = new SchemaInfo();
 
             foreach (var table in RetrieveTables())
                 schema.AddTable(table);
 
-            schema.Validate();
+            schema.Validate(supportedEngines);
             return schema;
         }
 
