@@ -193,20 +193,32 @@ namespace RT.SqlChain.Schema
         public void Validate(DbEngine supportedEngines)
         {
             // All table names must be distinct
-            // TODO
-            // All index names must be distinct
-            // TODO
-            // All foreign key names must be distinct
-            // TODO
+            var set = new HashSet<string>();
+            foreach (var table in Tables)
+                if (!set.Add(table.Name))
+                    throw new SchemaValidationException("Duplicate table name: [{0}].".Fmt(table.Name));
 
-            // Foreign key columns must be the same type as the referenced columns
+            set.Clear();
             foreach (var fk in ForeignKeys)
+            {
+                // All foreign key names must be distinct
+                if (!set.Add(fk.Name))
+                    throw new SchemaValidationException("Duplicate foreign-key name: [{0}].".Fmt(fk.Name));
+                
+                // Foreign key columns must be the same type as the referenced columns
                 foreach (var cols in fk.Columns.Zip(fk.ReferencedColumns, (c, refc) => new { Column = c, ReferencedColumn = refc }))
                     if (!cols.Column.Type.IsForeignKeyCompatibleWith(cols.ReferencedColumn.Type))
                         throw new SchemaValidationException("Foreign key [{0}] ([{1}] => [{2}]): columns [{3}] => [{4}] use types incompatible for foreign key purposes in some DBMSs ({5} vs {6}).".Fmt(fk.Name, fk.Table.Name, fk.ReferencedTable.Name, cols.Column.Name, cols.ReferencedColumn.Name, cols.Column.Type, cols.ReferencedColumn.Type));
+            }
 
-            // Indexes not allowed on certain column types
+            set.Clear();
             foreach (var index in Indexes)
+            {
+                // All index names must be distinct
+                if (!set.Add(index.Name))
+                    throw new SchemaValidationException("Duplicate index name: [{0}].".Fmt(index.Name));
+                
+                // Indexes not allowed on certain column types
                 foreach (var col in index.Columns)
                 {
                     if (supportedEngines.HasFlag(DbEngine.SqlServer))
@@ -216,6 +228,7 @@ namespace RT.SqlChain.Schema
                             throw new SchemaValidationException("Index [{0}] on table [{1}] references column [{2}], which is of type {3} with maximum length. MS SQL Server cannot index such columns.".Fmt(index.Name, index.Table.Name, col.Name, col.Type.BasicType));
                     }
                 }
+            }
         }
 
         public override string ToString()
