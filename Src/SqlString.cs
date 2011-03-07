@@ -1,4 +1,5 @@
 ﻿using System;
+using RT.Util.ExtensionMethods;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace RT.SqlChain
         /// </summary>
         public string MakeSql(params object[] values)
         {
-            var sb = new StringBuilder ();
+            var sb = new StringBuilder();
             bool first = true;
             foreach (var value in values)
             {
@@ -34,9 +35,9 @@ namespace RT.SqlChain
                 else if (value is string)
                     sb.Append(value as string);
                 else if (value is StaticTableInfo)
-                    sb.Append(MakeTableName((value as StaticTableInfo).SqlName));
+                    sb.Append(MakeTableName(((StaticTableInfo) value).SqlName));
                 else if (value is StaticColumnInfo)
-                    sb.Append(MakeTableName((value as StaticColumnInfo).Table.SqlName) + "." + MakeColumnName((value as StaticColumnInfo).SqlName));
+                    sb.Append(MakeTableName(((StaticColumnInfo) value).Table.SqlName) + "." + MakeColumnName(((StaticColumnInfo) value).SqlName));
                 else if (value is float)
                     sb.Append(MakeNumericLiteral((float) value));
                 else if (value is double)
@@ -92,6 +93,9 @@ namespace RT.SqlChain
     /// </summary>
     public class SqlServerStringManipulator : SqlStringManipulator
     {
+        public override string MakeDatetimeLiteral(DateTime value)
+        {
+            return "{ts '{0:0000}-{1:00}-{2:00} {3:00}:{4:00}:{5:00.000}'}".Fmt(value.Year, value.Month, value.Day, value.Hour, value.Minute, (double) value.Second + (double) value.Millisecond / 1000);
+        }
     }
-
 }
