@@ -74,7 +74,7 @@ namespace RT.SqlChain
             return value.ToString(CultureInfo.InvariantCulture.NumberFormat);
         }
 
-        /// <summary>Takes a number and creates a date/time literal, converting and surrounding as appropriate.</summary>
+        /// <summary>Takes a DateTime instance and creates a date/time literal, converting and surrounding as appropriate.</summary>
         public virtual string MakeDatetimeLiteral(DateTime value)
         {
             throw new NotImplementedException();
@@ -93,6 +93,7 @@ namespace RT.SqlChain
     /// </summary>
     public class SqlServerStringManipulator : SqlStringManipulator
     {
+        /// <summary>Takes a DateTime instance and creates an MSSQL-compatible date/time literal.</summary>
         public override string MakeDatetimeLiteral(DateTime value)
         {
             return "{ts '{0:0000}-{1:00}-{2:00} {3:00}:{4:00}:{5:00.000}'}".Fmt(value.Year, value.Month, value.Day, value.Hour, value.Minute, (double) value.Second + (double) value.Millisecond / 1000);
