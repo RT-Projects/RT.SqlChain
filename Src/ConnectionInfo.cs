@@ -491,7 +491,7 @@ namespace RT.SqlChain
 
         protected override string ProviderNamespace { get { return "IQToolkit.Data.Postgres"; } }
 
-        public override DbEngine DbEngineType { get { return DbEngine.Postgres; } }
+        public override DbEngine DbEngineType { get { throw new NotImplementedException(); } }
 
         public PostgresConnectionInfo(string database, string username, string password, string server = "localhost", int port = 5432)
         {
