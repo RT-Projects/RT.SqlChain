@@ -479,4 +479,131 @@ namespace RT.SqlChain
             return Server.ToUpperInvariant().GetHashCode() + Database.ToUpperInvariant().GetHashCode() * 17;
         }
     }
+
+    /// <summary>Describes an SqlChain connection to a Postgres database.</summary>
+    public class PostgresConnectionInfo : ConnectionInfo
+    {
+        public string Server { get; private set; }
+        public int Port { get; private set; }
+        public string Database { get; private set; }
+        public string Username { get; private set; }
+        public string Password { get; private set; }
+
+        protected override string ProviderNamespace { get { return "IQToolkit.Data.Postgres"; } }
+
+        public override DbEngine DbEngineType { get { return DbEngine.Postgres; } }
+
+        public PostgresConnectionInfo(string database, string username, string password, string server = "localhost", int port = 5432)
+        {
+            Database = database;
+            Username = username;
+            Password = password;
+            Server = server;
+            Port = port;
+        }
+
+        // For XmlClassify
+        protected PostgresConnectionInfo() { }
+
+        public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
+        {
+            return new PostgresSchemaRetriever(conn);
+        }
+
+        public override SchemaMutator CreateSchemaMutator(DbConnection conn, bool readOnly)
+        {
+            return new PostgresSchemaMutator(conn, readOnly) { Log = Log };
+        }
+
+        private DbConnection createConnection(bool master)
+        {
+            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
+            conn.ConnectionString = new DbConnectionStringBuilder()
+                {
+                    { "Database", master ? "postgres" : Database },
+                    { "User Id", Username },
+                    { "Password", Password },
+                    { "Server", Server },
+                    { "Port", Port },
+                }.ConnectionString;
+            return conn;
+        }
+
+        public override DbConnection CreateUnopenedConnection()
+        {
+            return createConnection(false);
+        }
+
+        public override DbConnection CreateConnectionForSchemaCreation()
+        {
+            // First try to create the database, in case it doesn't exist yet
+            try
+            {
+                using (var master = createConnection(true))
+                {
+                    master.Open();
+                    using (var cmd = master.CreateCommand())
+                    {
+                        cmd.CommandText = "CREATE DATABASE " + Database;
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (DbException)
+            {
+            }
+
+            return CreateConnection();
+        }
+
+        public override void DeleteSchema()
+        {
+            using (var master = createConnection(true))
+            {
+                master.Open();
+                if (schemaExists(master))
+                    using (var cmd = master.CreateCommand())
+                    {
+                        cmd.CommandText = "DROP DATABASE " + Database;
+                        if (Log != null)
+                        {
+                            Log.WriteLine(cmd.CommandText);
+                            Log.WriteLine();
+                        }
+                        cmd.ExecuteNonQuery();
+                    }
+            }
+
+            if (Log != null)
+            {
+                Log.WriteLine("Schema deleted.");
+                Log.WriteLine();
+            }
+        }
+
+        public override bool SchemaExists()
+        {
+            using (var master = createConnection(true))
+            {
+                master.Open();
+                return schemaExists(master);
+            }
+        }
+
+        private bool schemaExists(DbConnection master)
+        {
+            using (var cmd = master.CreateCommand())
+            {
+                cmd.CommandText = "SELECT Count(*) FROM pg_database WHERE datname='{0}'".Fmt(Database);
+                if (Log != null)
+                {
+                    Log.WriteLine(cmd.CommandText);
+                    Log.WriteLine();
+                }
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
+    }
+
 }

@@ -16,30 +16,6 @@ namespace RT.SqlChain.Schema
         {
         }
 
-        private class DataReaderAdapter : DataAdapter
-        {
-            public int FillFromReader(DataTable dataTable, IDataReader dataReader)
-            {
-                return this.Fill(dataTable, dataReader);
-            }
-        }
-
-        static DataReaderAdapter _adapter = new DataReaderAdapter();
-
-        private List<DataRow> executeSqlAndGetResults(string sql)
-        {
-            using (var table = new DataTable())
-            {
-                using (var cmd = Connection.CreateCommand())
-                {
-                    cmd.CommandText = sql;
-                    using (var reader = cmd.ExecuteReader())
-                        _adapter.FillFromReader(table, reader);
-                }
-                return table.Rows.Cast<DataRow>().ToList(); // performance is irrelevant; just want a convenient list of rows
-            }
-        }
-
         public override IEnumerable<TableInfo> RetrieveTables()
         {
             var tables = new List<TableInfo>();

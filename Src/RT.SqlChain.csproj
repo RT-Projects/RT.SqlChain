@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionInfo.cs" />
+    <Compile Include="Schema\PostgresSchemaMutator.cs" />
+    <Compile Include="Schema\PostgresSchemaRetriever.cs" />
     <Compile Include="StaticInfo.cs" />
     <Compile Include="SqlString.cs" />
     <Compile Include="TransactionBase.cs" />

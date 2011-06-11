@@ -37,6 +37,34 @@ namespace RT.SqlChain.Schema
         }
 #endif
 
+        #region Helper methods for descendants
+
+        private class DataReaderAdapter : DataAdapter
+        {
+            public int FillFromReader(DataTable dataTable, IDataReader dataReader)
+            {
+                return this.Fill(dataTable, dataReader);
+            }
+        }
+
+        private static DataReaderAdapter _adapter = new DataReaderAdapter();
+
+        protected List<DataRow> executeSqlAndGetResults(string sql)
+        {
+            using (var table = new DataTable())
+            {
+                using (var cmd = Connection.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                        _adapter.FillFromReader(table, reader);
+                }
+                return table.Rows.Cast<DataRow>().ToList(); // performance is irrelevant; just want a convenient list of rows
+            }
+        }
+
+        #endregion
+
         public virtual SchemaInfo RetrieveSchema(DbEngine supportedEngines)
         {
             var schema = new SchemaInfo();
