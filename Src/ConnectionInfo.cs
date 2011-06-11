@@ -271,27 +271,26 @@ namespace RT.SqlChain
             return new SqliteSchemaMutator(conn, readOnly) { Log = Log };
         }
 
-        public override DbConnection CreateUnopenedConnection()
+        private DbConnection createConnection(bool failIfMissing)
         {
             var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
             conn.ConnectionString = new DbConnectionStringBuilder()
                 {
                     {"Data Source", FileName},
                     {"Version", "3"},
-                    {"FailIfMissing", "True"},
+                    {"FailIfMissing", failIfMissing ? "True" : "False"},
                 }.ConnectionString;
             return conn;
         }
 
+        public override DbConnection CreateUnopenedConnection()
+        {
+            return createConnection(true);
+        }
+
         public override DbConnection CreateConnectionForSchemaCreation()
         {
-            var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
-            conn.ConnectionString = new DbConnectionStringBuilder()
-                {
-                    {"Data Source", FileName},
-                    {"Version", "3"},
-                    {"FailIfMissing", "False"},
-                }.ConnectionString;
+            var conn = createConnection(false);
             conn.Open();
             return conn;
         }
@@ -378,17 +377,22 @@ namespace RT.SqlChain
             return new SqlServerSchemaMutator(conn, readOnly) { Log = Log };
         }
 
-        public override DbConnection CreateUnopenedConnection()
+        private DbConnection createConnection(bool master)
         {
             var conn = (DbConnection) Activator.CreateInstance(AdoConnectionType);
             conn.ConnectionString = new DbConnectionStringBuilder()
                 {
                     {"Server", Server},
-                    {"Database", Database},
+                    {"Database", master ? "master" : Database},
                     {"Trusted_Connection", "True"},
                     {"Pooling", "False"},
                 }.ConnectionString;
             return conn;
+        }
+
+        public override DbConnection CreateUnopenedConnection()
+        {
+            return createConnection(false);
         }
 
         public override DbConnection CreateConnectionForSchemaCreation()
@@ -396,15 +400,8 @@ namespace RT.SqlChain
             // First try to create the database, in case it doesn't exist yet
             try
             {
-                using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+                using (var master = createConnection(true))
                 {
-                    master.ConnectionString = new DbConnectionStringBuilder()
-                        {
-                            {"Server", Server},
-                            {"Database", "master"},
-                            {"Trusted_Connection", "True"},
-                            {"Pooling", "False"},
-                        }.ConnectionString;
                     master.Open();
                     using (var cmd = master.CreateCommand())
                     {
@@ -422,14 +419,8 @@ namespace RT.SqlChain
 
         public override void DeleteSchema()
         {
-            using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+            using (var master = createConnection(true))
             {
-                master.ConnectionString = new DbConnectionStringBuilder()
-                        {
-                            {"Server", Server},
-                            {"Database", "master"},
-                            {"Trusted_Connection", "True"},
-                        }.ConnectionString;
                 master.Open();
                 if (schemaExists(master))
                     using (var cmd = master.CreateCommand())
@@ -453,14 +444,8 @@ namespace RT.SqlChain
 
         public override bool SchemaExists()
         {
-            using (var master = (DbConnection) Activator.CreateInstance(AdoConnectionType))
+            using (var master = createConnection(true))
             {
-                master.ConnectionString = new DbConnectionStringBuilder()
-                        {
-                            {"Server", Server},
-                            {"Database", "master"},
-                            {"Trusted_Connection", "True"},
-                        }.ConnectionString;
                 master.Open();
                 return schemaExists(master);
             }

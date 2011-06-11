@@ -1,10 +1,7 @@
 ﻿using System;
-using RT.Util.ExtensionMethods;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Globalization;
-using IQToolkit;
+using System.Text;
+using RT.Util.ExtensionMethods;
 
 namespace RT.SqlChain
 {
