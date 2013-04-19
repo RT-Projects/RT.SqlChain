@@ -147,6 +147,7 @@ namespace RT.SqlChain.Schema
             switch (sqlType)
             {
                 case "":
+                case "text":
                 case "varchar":
                 case "nvarchar":
                     type.BasicType = BasicType.VarText;
@@ -154,6 +155,7 @@ namespace RT.SqlChain.Schema
                         type.Length = null;
                     return type;
 
+                case "blob":
                 case "varbinary":
                     type.BasicType = BasicType.VarBinary;
                     if (type.Length == 2147483647)
