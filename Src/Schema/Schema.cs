@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using RT.Util.ExtensionMethods;
-using RT.Util.Xml;
 using RT.Util;
+using RT.Util.Serialization;
 
 #pragma warning disable 1591
 
@@ -247,7 +247,7 @@ namespace RT.SqlChain.Schema
         /// If the table is a member of a schema, this is a reference to that schema. Otherwise null.
         /// Set automatically by the <see cref="SchemaInfo"/> class when necessary.
         /// </summary>
-        [XmlIgnore]
+        [ClassifyIgnore]
         public SchemaInfo Schema { get; set; }
 
         /// <summary>
@@ -405,14 +405,14 @@ namespace RT.SqlChain.Schema
     /// </summary>
     public class BelongsToTable
     {
-        [XmlIgnore]
+        [ClassifyIgnore]
         private string _tableName;
 
         /// <summary>
         /// If this item is a member of a table, this is a reference to that table. Otherwise null.
         /// Set automatically by the <see cref="TableInfo"/> class when necessary.
         /// </summary>
-        [XmlIgnore]
+        [ClassifyIgnore]
         public TableInfo Table { get; set; }
 
         public string TableName

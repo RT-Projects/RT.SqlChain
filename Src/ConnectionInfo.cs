@@ -10,7 +10,7 @@ using IQToolkit.Data.Mapping;
 using RT.SqlChain.Schema;
 using RT.Util;
 using RT.Util.ExtensionMethods;
-using RT.Util.Xml;
+using RT.Util.Serialization;
 
 #pragma warning disable 1591
 
@@ -46,7 +46,7 @@ namespace RT.SqlChain
         /// Gets/sets a <see cref="TextWriter"/> object used for logging debug information, including
         /// all SQL queries, associated with this connection. Defaults to null, which disables logging.
         /// </summary>
-        [XmlIgnore]
+        [ClassifyIgnore]
         public TextWriter Log { get; set; }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace RT.SqlChain
 
         #region ProviderType, QueryLanguageType and AdoConnectionType
 
-        [XmlIgnore]
+        [ClassifyIgnore]
         private Type _providerType, _adoConnectionType, _queryLanguageType;
 
         protected Type ProviderType
