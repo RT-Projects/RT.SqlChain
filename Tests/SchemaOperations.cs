@@ -5,7 +5,7 @@ using System.Xml.Linq;
 using IQToolkit;
 using NUnit.Framework;
 using RT.SqlChain;
-using RT.Util.Xml;
+using RT.Util.Serialization;
 
 namespace RT.SqlChainTests
 {
@@ -29,7 +29,7 @@ namespace RT.SqlChainTests
             using (var dbconn = conninfo.CreateConnection())
             {
                 var retr = conninfo.CreateSchemaRetriever(dbconn);
-                var xmlActual = XmlClassify.ObjectToXElement(retr.RetrieveSchema(conninfo.DbEngineType));
+                var xmlActual = ClassifyXml.Serialize(retr.RetrieveSchema(conninfo.DbEngineType));
                 var xmlExpected = XElement.Parse(TestDB.SchemaAsXml);
                 Assert.IsTrue(XNode.DeepEquals(xmlActual, xmlExpected));
             }

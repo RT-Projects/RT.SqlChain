@@ -11,7 +11,7 @@ using IQToolkit.Data.Mapping;
 using RT.SqlChain;
 using RT.SqlChain.Schema;
 using RT.Util.ExtensionMethods;
-using RT.Util.Xml;
+using RT.Util.Serialization;
 
 namespace RT.SqlChainTests
 {
@@ -99,7 +99,7 @@ namespace RT.SqlChainTests
         public static void CreateSchema(ConnectionInfo connectionInfo)
         {
             var xml = XElement.Parse(SchemaAsXml);
-            var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
+            var schema = ClassifyXml.Deserialize<SchemaInfo>(xml);
             schema.XmlDeclassifyFixup(connectionInfo.DbEngineType);
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
@@ -116,7 +116,7 @@ namespace RT.SqlChainTests
         public static string CreateSchemaSqlOnly(ConnectionInfo connectionInfo)
         {
             var xml = XElement.Parse(SchemaAsXml);
-            var schema = XmlClassify.ObjectFromXElement<SchemaInfo>(xml);
+            var schema = ClassifyXml.Deserialize<SchemaInfo>(xml);
             schema.XmlDeclassifyFixup(connectionInfo.DbEngineType);
             using (var conn = connectionInfo.CreateConnectionForSchemaCreation())
             {
