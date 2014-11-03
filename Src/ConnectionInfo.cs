@@ -258,7 +258,7 @@ namespace RT.SqlChain
             FileName = fileName;
         }
 
-        // For XmlClassify
+        // For Classify
         protected SqliteConnectionInfo() { }
 
         public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
@@ -364,7 +364,7 @@ namespace RT.SqlChain
             Database = database;
         }
 
-        // For XmlClassify
+        // For Classify
         protected SqlServerConnectionInfo() { }
 
         public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
@@ -502,7 +502,7 @@ namespace RT.SqlChain
             Port = port;
         }
 
-        // For XmlClassify
+        // For Classify
         protected PostgresConnectionInfo() { }
 
         public override SchemaRetriever CreateSchemaRetriever(DbConnection conn)
