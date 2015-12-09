@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Data.Common;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Linq;
 using NUnit.Framework;
 using RT.SqlChain;
 using RT.SqlChain.Schema;
-using RT.Util;
-using RT.Util.Xml;
 
 namespace RT.SqlChainTests
 {
