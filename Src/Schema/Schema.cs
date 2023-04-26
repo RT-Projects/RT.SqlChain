@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using RT.Util.ExtensionMethods;
 using RT.Util;
-using RT.Util.Serialization;
+using RT.Serialization;
 
 #pragma warning disable 1591
 

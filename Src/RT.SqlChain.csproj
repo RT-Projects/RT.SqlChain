@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -10,26 +10,35 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RT.SqlChain</RootNamespace>
     <AssemblyName>RT.SqlChain</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OutputPath>..\Builds\$(Configuration)</OutputPath>
     <IntermediateOutputPath>..\Builds\$(Configuration)\obj-$(AssemblyName)</IntermediateOutputPath>
     <BaseIntermediateOutputPath>..\Builds\$(Configuration)\obj-$(AssemblyName)</BaseIntermediateOutputPath>
     <DocumentationFile>..\Builds\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RT.PostBuild, Version=2.0.1735.0, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
+    <Reference Include="RT.Serialization, Version=2.0.1735.0, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
+    <Reference Include="RT.Serialization.Xml, Version=2.0.1735.0, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
+    <Reference Include="RT.Util.Core, Version=2.0.1735.0, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -73,13 +82,12 @@
       <Project>{0DA62A7C-3B40-456F-A4B2-B3E19ED4080E}</Project>
       <Name>IQToolkit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\RT.Util\Src\RT.Util.csproj">
-      <Project>{8D0FE79C-AD8D-475C-9E6F-9CAE85365B5D}</Project>
-      <Name>Util</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="rules.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

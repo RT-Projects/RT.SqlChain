@@ -10,7 +10,7 @@ using IQToolkit.Data.Mapping;
 using RT.SqlChain.Schema;
 using RT.Util;
 using RT.Util.ExtensionMethods;
-using RT.Util.Serialization;
+using RT.Serialization;
 
 #pragma warning disable 1591
 
