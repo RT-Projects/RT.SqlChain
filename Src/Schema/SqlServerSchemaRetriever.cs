@@ -58,13 +58,13 @@ namespace RT.SqlChain.Schema
 
             foreach (var row in executeSqlAndGetResults(sql))
             {
-                var index = indexes.FirstOrDefault(i => i.Name.EqualsNoCase(row["IndexName"].ToString()));
+                var index = indexes.FirstOrDefault(i => i.Name.EqualsIgnoreCase(row["IndexName"].ToString()));
                 if (index == null)
                 {
                     index = new IndexInfo();
                     index.Name = row["IndexName"].ToString();
                     index.TableName = row["TableName"].ToString();
-                    index.Kind = row["IsPrimaryKey"].ToString().EqualsNoCase("true") ? IndexKind.PrimaryKey : row["IsUniqueConstraint"].ToString().EqualsNoCase("true") ? IndexKind.Unique : IndexKind.Normal;
+                    index.Kind = row["IsPrimaryKey"].ToString().EqualsIgnoreCase("true") ? IndexKind.PrimaryKey : row["IsUniqueConstraint"].ToString().EqualsIgnoreCase("true") ? IndexKind.Unique : IndexKind.Normal;
                     indexes.Add(index);
                 }
 
@@ -100,7 +100,7 @@ namespace RT.SqlChain.Schema
 
             foreach (var row in executeSqlAndGetResults(sql))
             {
-                var key = foreignKeys.FirstOrDefault(fk => fk.Name.EqualsNoCase(row["ForeignKeyName"].ToString()));
+                var key = foreignKeys.FirstOrDefault(fk => fk.Name.EqualsIgnoreCase(row["ForeignKeyName"].ToString()));
                 if (key == null)
                 {
                     key = new ForeignKeyInfo();
@@ -170,12 +170,12 @@ namespace RT.SqlChain.Schema
         private TypeInfo retrieveTypeNonValidated(DataRow row)
         {
             var type = new TypeInfo();
-            type.Nullable = row["IsNullable"].ToString().EqualsNoCase("true");
+            type.Nullable = row["IsNullable"].ToString().EqualsIgnoreCase("true");
 
             if (row["CharMaxLength"] != null && row["CharMaxLength"].GetType() != typeof(DBNull))
                 type.Length = Convert.ToInt32(row["CharMaxLength"]);
 
-            bool autoincrement = row["IsAutoincrement"].ToString().EqualsNoCase("true");
+            bool autoincrement = row["IsAutoincrement"].ToString().EqualsIgnoreCase("true");
             string sqlType = row["DataType"].ToString().ToLowerInvariant();
 
             Action assertNoLength = () => { if (type.Length != null) throw new NotSupportedException("Not supported: SQL type \"{0}\" with a length specified".Fmt(sqlType)); };

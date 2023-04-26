@@ -30,14 +30,14 @@ namespace RT.SqlChain.Schema
 
         public override IEnumerable<TableInfo> RetrieveTables()
         {
-            var schTables = getSchema("Tables", row => row["TABLE_TYPE"].ToString().EqualsNoCase("table"));
+            var schTables = getSchema("Tables", row => row["TABLE_TYPE"].ToString().EqualsIgnoreCase("table"));
             foreach (var schTable in schTables.OrderBy(r => r["TABLE_NAME"].ToString()))
                 yield return RetrieveTable(schTable["TABLE_NAME"].ToString());
         }
 
         public override IEnumerable<IndexInfo> RetrieveIndexes(string tableName)
         {
-            var schIndexes = getSchema("Indexes", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName));
+            var schIndexes = getSchema("Indexes", row => row["TABLE_NAME"].ToString().EqualsIgnoreCase(tableName));
             foreach (var schIndex in schIndexes.OrderBy(r => r["INDEX_NAME"].ToString()))
                 yield return retrieveIndex(schIndex);
         }
@@ -45,8 +45,8 @@ namespace RT.SqlChain.Schema
         private IndexInfo retrieveIndex(DataRow schIndex)
         {
             var index = new IndexInfo();
-            bool isPrimary = schIndex["PRIMARY_KEY"].ToString().EqualsNoCase("true");
-            bool isUnique = schIndex["UNIQUE"].ToString().EqualsNoCase("true");
+            bool isPrimary = schIndex["PRIMARY_KEY"].ToString().EqualsIgnoreCase("true");
+            bool isUnique = schIndex["UNIQUE"].ToString().EqualsIgnoreCase("true");
 
             index.TableName = schIndex["TABLE_NAME"].ToString();
             index.Name = schIndex["INDEX_NAME"].ToString();
@@ -54,7 +54,7 @@ namespace RT.SqlChain.Schema
                 throw new InvalidOperationException("Index [{0}] on table [{1}] is marked as Primary Key but not Unique.".Fmt(index.TableName, index.Name));
             index.Kind = isPrimary ? IndexKind.PrimaryKey : isUnique ? IndexKind.Unique : IndexKind.Normal;
 
-            var schIndexColumns = getSchema("IndexColumns", row => row["INDEX_NAME"].ToString().EqualsNoCase(index.Name))
+            var schIndexColumns = getSchema("IndexColumns", row => row["INDEX_NAME"].ToString().EqualsIgnoreCase(index.Name))
                 .OrderBy(row => Convert.ToInt32(row["ORDINAL_POSITION"]));
             foreach (var schIndexColumn in schIndexColumns)
                 index.ColumnNames.Add(schIndexColumn["COLUMN_NAME"].ToString());
@@ -65,7 +65,7 @@ namespace RT.SqlChain.Schema
 
         public override IEnumerable<ForeignKeyInfo> RetrieveForeignKeys(string tableName)
         {
-            var schFKs = getSchema("ForeignKeys", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName) && row["CONSTRAINT_TYPE"].ToString().EqualsNoCase("FOREIGN KEY"));
+            var schFKs = getSchema("ForeignKeys", row => row["TABLE_NAME"].ToString().EqualsIgnoreCase(tableName) && row["CONSTRAINT_TYPE"].ToString().EqualsIgnoreCase("FOREIGN KEY"));
             var FKs = schFKs.GroupBy(row => row["CONSTRAINT_NAME"].ToString(), StringComparer.OrdinalIgnoreCase);
 
             foreach (var group in FKs.OrderBy(fk => fk.Key))
@@ -95,7 +95,7 @@ namespace RT.SqlChain.Schema
 
         public override IEnumerable<ColumnInfo> RetrieveColumns(string tableName)
         {
-            var schColumns = getSchema("Columns", row => row["TABLE_NAME"].ToString().EqualsNoCase(tableName));
+            var schColumns = getSchema("Columns", row => row["TABLE_NAME"].ToString().EqualsIgnoreCase(tableName));
             foreach (DataRow schColumn in schColumns.OrderBy(r => Convert.ToInt32(r["ORDINAL_POSITION"])))
                 yield return retrieveColumn(schColumn);
         }
@@ -120,13 +120,13 @@ namespace RT.SqlChain.Schema
         private TypeInfo retrieveTypeNonValidated(DataRow schColumn)
         {
             var type = new TypeInfo();
-            type.Nullable = schColumn["IS_NULLABLE"].ToString().EqualsNoCase("true");
+            type.Nullable = schColumn["IS_NULLABLE"].ToString().EqualsIgnoreCase("true");
 
             int lengthDummy;
             if (int.TryParse(schColumn["CHARACTER_MAXIMUM_LENGTH"].ToString(), out lengthDummy))
                 type.Length = lengthDummy;
 
-            bool autoincrement = schColumn["AUTOINCREMENT"].ToString().EqualsNoCase("true");
+            bool autoincrement = schColumn["AUTOINCREMENT"].ToString().EqualsIgnoreCase("true");
             var sqlType = schColumn["DATA_TYPE"].ToString().ToLowerInvariant();
 
             Action assertNoLength = () => { if (type.Length != null) throw new NotSupportedException("Not supported: SQL type \"{0}\" with a length specified".Fmt(sqlType)); };

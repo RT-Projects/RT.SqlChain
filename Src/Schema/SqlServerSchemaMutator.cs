@@ -78,7 +78,7 @@ namespace RT.SqlChain.Schema
 
             var newTableName = "_new_table";
             var i = 1;
-            while (schema.Tables.Any(t => t.Name.EqualsNoCase(newTableName)))
+            while (schema.Tables.Any(t => t.Name.EqualsIgnoreCase(newTableName)))
             {
                 i++;
                 newTableName = "_new_table_" + i;

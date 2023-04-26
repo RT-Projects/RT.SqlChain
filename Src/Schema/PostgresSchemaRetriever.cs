@@ -50,7 +50,7 @@ namespace RT.SqlChain.Schema
         private TypeInfo retrieveType(DataRow row)
         {
             var type = new TypeInfo();
-            type.Nullable = row["is_nullable"].ToString().EqualsNoCase("yes");
+            type.Nullable = row["is_nullable"].ToString().EqualsIgnoreCase("yes");
 
             if (row["character_maximum_length"] != null && row["character_maximum_length"].GetType() != typeof(DBNull))
                 type.Length = Convert.ToInt32(row["character_maximum_length"]);

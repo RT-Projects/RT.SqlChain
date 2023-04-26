@@ -110,7 +110,7 @@ namespace RT.SqlChain.Schema
         /// </summary>
         public TableInfo Table(string tableName)
         {
-            var result = _tables.FirstOrDefault(t => t.Name.EqualsNoCase(tableName));
+            var result = _tables.FirstOrDefault(t => t.Name.EqualsIgnoreCase(tableName));
             if (result == null)
                 throw new KeyNotFoundException("Table [{0}] does not exist in this schema.".Fmt(tableName));
             else
@@ -141,7 +141,7 @@ namespace RT.SqlChain.Schema
         public TableInfo RemoveTable(string tableName)
         {
             for (int i = 0; i < _tables.Count; i++)
-                if (_tables[i].Name.EqualsNoCase(tableName))
+                if (_tables[i].Name.EqualsIgnoreCase(tableName))
                 {
                     var tbl = _tables[i];
                     tbl.Schema = null;
@@ -281,7 +281,7 @@ namespace RT.SqlChain.Schema
 
         public ColumnInfo Column(string columnName)
         {
-            var result = _columns.FirstOrDefault(c => c.Name.EqualsNoCase(columnName));
+            var result = _columns.FirstOrDefault(c => c.Name.EqualsIgnoreCase(columnName));
             if (result == null)
                 throw new KeyNotFoundException("Column [{0}] does not exist in table [{1}].".Fmt(columnName, Name));
             else
@@ -292,7 +292,7 @@ namespace RT.SqlChain.Schema
         {
             if (column.Table != null)
                 throw new InvalidOperationException("Column [{0}] is already a member of a table named [{1}].".Fmt(column.Name, column.Table.Name));
-            if (_columns.Any(c => c.Name.EqualsNoCase(column.Name)))
+            if (_columns.Any(c => c.Name.EqualsIgnoreCase(column.Name)))
                 throw new InvalidOperationException("A column named [{0}] already exists in table [{1}].".Fmt(column.Name, Name));
             column.Table = this;
             _columns.Add(column);
@@ -301,7 +301,7 @@ namespace RT.SqlChain.Schema
         public ColumnInfo RemoveColumn(string columnName)
         {
             for (int i = 0; i < _columns.Count; i++)
-                if (_columns[i].Name.EqualsNoCase(columnName))
+                if (_columns[i].Name.EqualsIgnoreCase(columnName))
                 {
                     var col = _columns[i];
                     col.Table = null;
@@ -324,7 +324,7 @@ namespace RT.SqlChain.Schema
             if (index.Table != null)
                 throw new InvalidOperationException("Index [{0}] is already a member of a table named [{1}].".Fmt(index.Name, index.Table.Name));
             // Check for name uniqueness within the table; adding this to a schema will check for overall uniqueness
-            if (_indexes.Any(i => i.Name.EqualsNoCase(index.Name)))
+            if (_indexes.Any(i => i.Name.EqualsIgnoreCase(index.Name)))
                 throw new InvalidOperationException("Index [{0}] has the same name as another index on table [{1}].".Fmt(index.Name, Name));
             index.Table = this;
             _indexes.Add(index);
@@ -341,7 +341,7 @@ namespace RT.SqlChain.Schema
             if (foreignKey.Table != null)
                 throw new InvalidOperationException("Foreign key [{0}] is already a member of a table named [{1}].".Fmt(foreignKey.Name, foreignKey.Table.Name));
             // Check for name uniqueness within the table; adding this to a schema will check for overall uniqueness
-            if (_foreignKeys.Any(fk => fk.Name.EqualsNoCase(foreignKey.Name)))
+            if (_foreignKeys.Any(fk => fk.Name.EqualsIgnoreCase(foreignKey.Name)))
                 throw new InvalidOperationException("Foreign key [{0}] has the same name as another foreign key on table [{1}].".Fmt(foreignKey.Name, Name));
             foreignKey.Table = this;
             _foreignKeys.Add(foreignKey);
@@ -465,7 +465,7 @@ namespace RT.SqlChain.Schema
                 if (Table == null)
                     throw new InvalidOperationException("Cannot determine whether the column is part of a primary key because the column is not associated with a table.");
                 else
-                    return Table.PrimaryKey == null ? false : Table.PrimaryKey.ColumnNames.Any(cn => cn.EqualsNoCase(Name));
+                    return Table.PrimaryKey == null ? false : Table.PrimaryKey.ColumnNames.Any(cn => cn.EqualsIgnoreCase(Name));
             }
         }
 
@@ -515,7 +515,7 @@ namespace RT.SqlChain.Schema
             {
                 // All the columns must exist in the parent table
                 foreach (var columnName in ColumnNames)
-                    if (!Table.Columns.Any(c => c.Name.EqualsNoCase(columnName)))
+                    if (!Table.Columns.Any(c => c.Name.EqualsIgnoreCase(columnName)))
                         throw new SchemaValidationException("{0} indexes a non-existent column [{1}]".Fmt(this, columnName));
             }
         }
@@ -592,17 +592,17 @@ namespace RT.SqlChain.Schema
             {
                 // All the columns must exist in the parent table
                 foreach (var columnName in ColumnNames)
-                    if (!Table.Columns.Any(c => c.Name.EqualsNoCase(columnName)))
+                    if (!Table.Columns.Any(c => c.Name.EqualsIgnoreCase(columnName)))
                         throw new SchemaValidationException("{0} constrains a non-existent column [{1}]".Fmt(this, columnName));
                 if (Table.Schema != null)
                 {
                     // Referenced table must exist
-                    var referencedTable = Table.Schema.Tables.FirstOrDefault(t => t.Name.EqualsNoCase(ReferencedTableName));
+                    var referencedTable = Table.Schema.Tables.FirstOrDefault(t => t.Name.EqualsIgnoreCase(ReferencedTableName));
                     if (referencedTable == null)
                         throw new SchemaValidationException("{0} references a non-existent table [{1}]".Fmt(this, ReferencedTableName));
                     // All the referenced columns must exist in the referenced table
                     foreach (var referencedColumnName in ReferencedColumnNames)
-                        if (!referencedTable.Columns.Any(c => c.Name.EqualsNoCase(referencedColumnName)))
+                        if (!referencedTable.Columns.Any(c => c.Name.EqualsIgnoreCase(referencedColumnName)))
                             throw new SchemaValidationException("{0} references a non-existent column [{1}]".Fmt(this, referencedColumnName));
                 }
             }

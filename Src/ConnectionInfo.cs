@@ -471,7 +471,7 @@ namespace RT.SqlChain
             var objSql = obj as SqlServerConnectionInfo;
             if (objSql == null)
                 return false;
-            return objSql.Server.EqualsNoCase(Server) && objSql.Database.EqualsNoCase(Database);
+            return objSql.Server.EqualsIgnoreCase(Server) && objSql.Database.EqualsIgnoreCase(Database);
         }
 
         public override int GetHashCode()
